@@ -504,6 +504,7 @@
     m.img = null;
     renderChat();
     renderList();
+    saveChats();
   }
 
   // ============ ЭМОДЗИ ВА СУРАТ ============
@@ -532,6 +533,7 @@
       c.messages.push({ from: "me", img: reader.result, text: "", time: now(), delivered: false, read: false });
       appendBubble(last(c));
       renderList();
+      saveChats();
       autoReply(c);
       e.target.value = "";
     };
@@ -589,12 +591,17 @@
     $("app").style.display = "";
     $("meName").textContent = u.firstName + " " + u.lastName;
     $("meAvatar").textContent = (u.firstName[0] + u.lastName[0]).toUpperCase();
+    const saved = loadChats();
+    // аз намунаи тоза нусха мегирем, то демо-маълумот дахолатпазир нашаванд
+    CONTACTS = (saved || DEMO_CONTACTS).map(c => ({ ...c, messages: c.messages.map(m => ({ ...m })) }));
+    activeId = CONTACTS[0].id;
     renderList();
     renderChat();
   }
 
   // ============ МАЪЛУМОТИ НАМУНАВӢ ============
-  const CONTACTS = [
+  // Нусхаи аслии намунавӣ — ҳар дафъа startApp аз он нусха гирифта мешавад
+  const DEMO_CONTACTS = [
     {
       id: "firuza", name: "Фирӯза Раҳимова", initials: "ФР",
       color: "linear-gradient(135deg, #e6537a, #ff8a5c)", online: true, unread: 2,
@@ -640,6 +647,35 @@
     }
   ];
 
+  // ============ НИГОҲДОРИИ ЧАТҲО ДАР LOCALSTORAGE ============
+  const CHATS_KEY = "tjkchat_chats";
+
+  const validMsg = m => m && typeof m === "object"
+    && (m.from === "me" || m.from === "them")
+    && typeof m.time === "string"
+    && (typeof m.text === "string" || (m.img === null || typeof m.img === "string"));
+
+  function loadChats() {
+    try {
+      const saved = JSON.parse(localStorage.getItem(CHATS_KEY));
+      if (!saved || typeof saved !== "object") return null;
+      return DEMO_CONTACTS.map(c => {
+        const msgs = Array.isArray(saved[c.id]) ? saved[c.id].filter(validMsg) : null;
+        return msgs && msgs.length ? { ...c, messages: msgs } : c;
+      });
+    } catch { return null; }
+  }
+
+  function saveChats() {
+    try {
+      const data = {};
+      CONTACTS.forEach(c => data[c.id] = c.messages);
+      localStorage.setItem(CHATS_KEY, JSON.stringify(data));
+    } catch {
+      // quota пур шуд (масалан, суратҳои калон) — ин helo бе хато мегузарад
+    }
+  }
+
   const REPLIES = [
     "Ҳа, албатта! 😊",
     "Хуб аст, мувофиқ шудем.",
@@ -658,7 +694,8 @@
     return String(d.getHours()).padStart(2, "0") + ":" + String(d.getMinutes()).padStart(2, "0");
   };
 
-  let activeId = CONTACTS[0].id;
+  let activeId = null;
+  let CONTACTS = [];
   const active = () => CONTACTS.find(c => c.id === activeId);
   const last = c => c.messages[c.messages.length - 1];
   const scrollDown = () => { const m = $("messages"); m.scrollTop = m.scrollHeight; };
@@ -731,6 +768,7 @@
           renderChat();
         }
         renderList();
+        saveChats();
       }, 1200 + Math.random() * 1400);
     }, 900 + Math.random() * 1200);
   }
@@ -746,6 +784,7 @@
     cancelReply();
     appendBubble(last(c));
     renderList();
+    saveChats();
     autoReply(c);
   });
 
