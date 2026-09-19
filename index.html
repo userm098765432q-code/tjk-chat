@@ -12,8 +12,8 @@
     --text: #f2ede1;
     --muted: #9a917d;
     --gold: #d4af37;
-    --gold-2: #f5d97a;
     --gold-soft: rgba(212, 175, 55, 0.15);
+    --gold-grad: linear-gradient(135deg, #d4af37, #b08d24);
     --border: rgba(212, 175, 55, 0.22);
     --bubble: #1c1c1c;
   }
@@ -59,8 +59,8 @@
     align-items: center;
     justify-content: center;
     border-radius: 50%;
-    background: linear-gradient(135deg, #d4af37, #8a6d1f);
-    color: #0a0a0a;
+    background: var(--gold-grad);
+    color: var(--bg);
     font-size: 26px;
     font-weight: 800;
     box-shadow: 0 0 26px rgba(212, 175, 55, 0.4);
@@ -83,7 +83,7 @@
     transition: border-color 0.2s, box-shadow 0.2s;
   }
   .field input:focus { border-color: var(--gold); box-shadow: 0 0 0 3px var(--gold-soft); }
-  .field input::placeholder { color: #6b6454; }
+  .field input::placeholder { color: var(--muted); }
   .field .err { display: block; font-size: 11.5px; color: #ff6b6b; margin-top: 4px; min-height: 14px; }
   .field input.invalid { border-color: #ff6b6b; }
 
@@ -93,8 +93,8 @@
     margin-top: 6px;
     border: none;
     border-radius: 10px;
-    background: linear-gradient(135deg, #d4af37, #b08d24);
-    color: #0a0a0a;
+    background: var(--gold-grad);
+    color: var(--bg);
     font-size: 15px;
     font-weight: 800;
     letter-spacing: 1px;
@@ -157,9 +157,9 @@
     border-radius: 50%;
     font-weight: 700;
     font-size: 15px;
-    color: #0a0a0a;
+    color: var(--bg);
     position: relative;
-    background: linear-gradient(135deg, #d4af37, #8a6d1f);
+    background: var(--gold-grad);
   }
   .presence {
     position: absolute;
@@ -187,7 +187,7 @@
     justify-content: center;
     border-radius: 10px;
     background: var(--gold);
-    color: #0a0a0a;
+    color: var(--bg);
     font-size: 11px;
     font-weight: 700;
   }
@@ -236,8 +236,8 @@
   }
   .msg.them .bubble { background: var(--bubble); border: 1px solid var(--border); border-bottom-left-radius: 4px; }
   .msg.me .bubble {
-    background: linear-gradient(135deg, #d4af37, #b08d24);
-    color: #0a0a0a;
+    background: var(--gold-grad);
+    color: var(--bg);
     font-weight: 500;
     border-bottom-right-radius: 4px;
   }
@@ -272,8 +272,8 @@
     height: 46px;
     border: none;
     border-radius: 50%;
-    background: linear-gradient(135deg, #d4af37, #b08d24);
-    color: #0a0a0a;
+    background: var(--gold-grad);
+    color: var(--bg);
     font-size: 18px;
     cursor: pointer;
   }
@@ -371,27 +371,19 @@
 <script>
   // ============ АУТЕНТИФИКАТСИЯ ============
   const AUTH_KEY = "tjkchat_user";
+  const FIELDS = ["firstName", "lastName", "phone", "email"];
 
-  function loadUser() {
+  const $ = id => document.getElementById(id);
+  const loadUser = () => {
     try { return JSON.parse(localStorage.getItem(AUTH_KEY)); } catch { return null; }
-  }
-
-  function saveUser(u) {
-    localStorage.setItem(AUTH_KEY, JSON.stringify(u));
-  }
+  };
 
   function logout() {
     localStorage.removeItem(AUTH_KEY);
-    document.getElementById("app").style.display = "none";
-    document.getElementById("authScreen").classList.remove("hidden");
-    document.getElementById("authForm").reset();
+    $("app").style.display = "none";
+    $("authScreen").classList.remove("hidden");
+    $("authForm").reset();
   }
-
-  const $ = id => document.getElementById(id);
-  const setError = (id, msg) => {
-    $(id).classList.toggle("invalid", !!msg);
-    $("err-" + id).textContent = msg || "";
-  };
 
   // Тасдиқ (validation)
   const validators = {
@@ -402,35 +394,28 @@
   };
 
   function validateField(id) {
-    const val = $(id).value;
-    const err = validators[id](val);
-    setError(id, err);
-    return !err;
+    const msg = validators[id]($(id).value);
+    $(id).classList.toggle("invalid", !!msg);
+    $("err-" + id).textContent = msg;
+    return !msg;
   }
 
-  ["firstName", "lastName", "phone", "email"].forEach(id => {
-    $(id).addEventListener("input", () => {
-      if ($("err-" + id).textContent) validateField(id);
-    });
-  });
+  FIELDS.forEach(id => $(id).addEventListener("input", () => {
+    if ($("err-" + id).textContent) validateField(id);
+  }));
 
   $("authForm").addEventListener("submit", e => {
     e.preventDefault();
-    const ok = ["firstName", "lastName", "phone", "email"].map(validateField).every(Boolean);
-    if (!ok) return;
-    saveUser({
-      firstName: $("firstName").value.trim(),
-      lastName: $("lastName").value.trim(),
-      phone: $("phone").value.trim(),
-      email: $("email").value.trim(),
-      joinedAt: new Date().toISOString()
-    });
+    if (!FIELDS.map(validateField).every(Boolean)) return;
+    const u = {};
+    FIELDS.forEach(id => u[id] = $(id).value.trim());
+    localStorage.setItem(AUTH_KEY, JSON.stringify(u));
     startApp();
   });
 
   function startApp() {
     const u = loadUser();
-    if (!u) return;
+    if (!u) { $("app").style.display = "none"; return; }
     $("authScreen").classList.add("hidden");
     $("app").style.display = "";
     $("meName").textContent = u.firstName + " " + u.lastName;
@@ -510,8 +495,8 @@
   const scrollDown = () => { const m = $("messages"); m.scrollTop = m.scrollHeight; };
 
   // ============ РАСМКУНӢ ============
-  function renderList(filter = $("search").value) {
-    const f = filter.toLowerCase();
+  function renderList() {
+    const f = $("search").value.toLowerCase();
     $("chatList").innerHTML = CONTACTS
       .filter(c => c.name.toLowerCase().includes(f))
       .map(c => `
@@ -531,6 +516,9 @@
       .join("");
   }
 
+  const bubbleHTML = m =>
+    `<div class="msg ${m.from}"><div class="bubble">${esc(m.text)}<span class="meta">${m.time}${m.from === "me" ? " ✓✓" : ""}</span></div></div>`;
+
   function renderChat() {
     const c = active();
     $("headerAvatar").style.background = c.color;
@@ -539,19 +527,12 @@
     $("headerStatus").textContent = c.online ? "● Дар интернет" : "● " + (c.lastSeen || "Илғоқ нест");
     $("headerStatus").classList.toggle("online", c.online);
 
-    $("messages").innerHTML = c.messages.map(m => `
-      <div class="msg ${m.from}">
-        <div class="bubble">${esc(m.text)}<span class="meta">${m.time}${m.from === "me" ? " ✓✓" : ""}</span></div>
-      </div>`)
-      .join("");
+    $("messages").innerHTML = c.messages.map(bubbleHTML).join("");
     scrollDown();
   }
 
   function appendBubble(msg) {
-    $("messages").insertAdjacentHTML("beforeend", `
-      <div class="msg ${msg.from}">
-        <div class="bubble">${esc(msg.text)}<span class="meta">${msg.time}${msg.from === "me" ? " ✓✓" : ""}</span></div>
-      </div>`);
+    $("messages").insertAdjacentHTML("beforeend", bubbleHTML(msg));
     scrollDown();
   }
 
@@ -608,7 +589,6 @@
   $("logoutBtn").addEventListener("click", logout);
 
   // ============ ОҒОЗ ============
-  if (!loadUser()) $("app").style.display = "none";
   startApp();
 </script>
 </body>
