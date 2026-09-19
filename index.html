@@ -375,7 +375,10 @@
 
   const $ = id => document.getElementById(id);
   const loadUser = () => {
-    try { return JSON.parse(localStorage.getItem(AUTH_KEY)); } catch { return null; }
+    try {
+      const u = JSON.parse(localStorage.getItem(AUTH_KEY));
+      return FIELDS.every(f => typeof u?.[f] === "string" && u[f]) ? u : null;
+    } catch { return null; }
   };
 
   function logout() {
