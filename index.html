@@ -279,6 +279,93 @@
   }
   .send-btn:disabled { opacity: 0.35; cursor: default; }
 
+  /* ---------- Воситаҳои WhatsApp-монанд ---------- */
+  .composer-btn {
+    width: 42px;
+    height: 42px;
+    align-self: center;
+    border: none;
+    border-radius: 50%;
+    background: none;
+    color: var(--muted);
+    font-size: 20px;
+    cursor: pointer;
+  }
+  .composer-btn:hover { color: var(--gold); background: var(--panel-2); }
+
+  .emoji-panel {
+    display: none;
+    flex-wrap: wrap;
+    gap: 2px;
+    padding: 8px;
+    margin: 0 16px 8px;
+    background: var(--panel-2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    max-height: 150px;
+    overflow-y: auto;
+  }
+  .emoji-panel.show { display: flex; }
+  .emoji-panel button {
+    width: 34px;
+    height: 34px;
+    border: none;
+    background: none;
+    font-size: 20px;
+    border-radius: 8px;
+    cursor: pointer;
+  }
+  .emoji-panel button:hover { background: var(--gold-soft); }
+
+  .reply-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0 16px 8px;
+    padding: 8px 12px;
+    background: var(--panel-2);
+    border-left: 3px solid var(--gold);
+    border-radius: 8px;
+    font-size: 13px;
+  }
+  .reply-bar .rt { flex: 1; min-width: 0; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .reply-bar .rt b { color: var(--gold); }
+  .reply-bar button { border: none; background: none; color: var(--muted); cursor: pointer; font-size: 15px; }
+  .reply-bar button:hover { color: var(--gold); }
+
+  .acts { display: flex; gap: 2px; align-self: center; opacity: 0; transition: opacity 0.15s; }
+  .msg:hover .acts { opacity: 1; }
+  @media (hover: none) { .acts { opacity: 1; } }
+  .acts button {
+    border: none;
+    background: none;
+    color: var(--muted);
+    cursor: pointer;
+    font-size: 14px;
+    padding: 2px 4px;
+    border-radius: 6px;
+  }
+  .acts button:hover { color: var(--gold); background: var(--panel-2); }
+
+  .msg-img { max-width: 220px; max-height: 220px; border-radius: 10px; display: block; margin-bottom: 3px; }
+
+  .quote {
+    border-left: 3px solid var(--gold);
+    background: var(--gold-soft);
+    padding: 4px 8px;
+    border-radius: 6px;
+    margin-bottom: 5px;
+    font-size: 12.5px;
+    color: var(--muted);
+    max-height: 3em;
+    overflow: hidden;
+  }
+  .quote b { display: block; color: var(--gold); font-size: 12px; }
+
+  .tick { letter-spacing: -2px; }
+  .tick.read { color: #53bdeb; }
+  .deleted { font-style: italic; color: var(--muted); }
+
   ::-webkit-scrollbar { width: 8px; }
   ::-webkit-scrollbar-track { background: var(--panel); }
   ::-webkit-scrollbar-thumb { background: rgba(212, 175, 55, 0.35); border-radius: 4px; }
@@ -360,9 +447,17 @@
       </div>
     </div>
     <div class="messages" id="messages"></div>
+    <div class="emoji-panel" id="emojiPanel"></div>
+    <div class="reply-bar" id="replyBar" hidden>
+      <span class="rt" id="replyText"></span>
+      <button type="button" id="cancelReply" title="Бекор кардан">✕</button>
+    </div>
     <form class="composer" id="composer" autocomplete="off">
+      <button type="button" class="composer-btn" id="attachBtn" title="Иловакуни сурат">📎</button>
+      <button type="button" class="composer-btn" id="emojiBtn" title="Эмодзи">😊</button>
       <input type="text" id="input" placeholder="Паём нависед...">
       <button type="submit" class="send-btn" id="sendBtn" disabled>➤</button>
+      <input type="file" id="fileInput" accept="image/*" hidden>
     </form>
   </main>
 
@@ -372,8 +467,79 @@
   // ============ АУТЕНТИФИКАТСИЯ ============
   const AUTH_KEY = "tjkchat_user";
   const FIELDS = ["firstName", "lastName", "phone", "email"];
-
   const $ = id => document.getElementById(id);
+
+  // ============ ВАҲАЛАТИ ҶАВОБ / ПАЁМ ============
+  let replyTarget = null;  // паёме, ки ҷавоб медиҳем
+
+  const bubbleHTML = m => {
+    const mine = m.from === "me";
+    const quote = m.replyTo ? `<div class="quote"><b>${esc(m.replyTo.name)}</b>${esc(m.replyTo.text)}</div>` : "";
+    const img = m.img ? `<img class="msg-img" src="${m.img}" alt="">` : "";
+    const body = m.deleted ? '<span class="deleted">🚫 Ин паём нест карда шуд</span>' : esc(m.text);
+    const acts = m.deleted ? "" : `
+      <span class="acts">
+        <button data-act="reply" title="Ҷавоб">↩</button>
+        ${mine ? `<button data-act="del" title="Нест кардан">🗑</button>` : ""}
+      </span>`;
+    const ticks = mine ? `<span class="tick${m.read ? " read" : ""}">${m.read ? "✓✓" : m.delivered ? "✓✓" : "✓"}</span>` : "";
+    return `<div class="msg ${m.from}">${acts}<div class="bubble">${quote}${img}${body}<span class="meta">${m.time} ${ticks}</span></div></div>`;
+  };
+
+  function startReply(m) {
+    replyTarget = { name: m.from === "me" ? "Шумо" : active().name, text: m.text || "📷 Сурат" };
+    $("replyText").innerHTML = `<b>${esc(replyTarget.name)}</b> ${esc(replyTarget.text)}`;
+    $("replyBar").hidden = false;
+    $("input").focus();
+  }
+
+  function cancelReply() {
+    replyTarget = null;
+    $("replyBar").hidden = true;
+  }
+
+  function deleteMessage(m) {
+    m.deleted = true;
+    m.text = "";
+    m.img = null;
+    renderChat();
+    renderList();
+  }
+
+  // ============ ЭМОДЗИ ВА СУРАТ ============
+  const EMOJIS = ["😀","😂","🥹","😍","😎","🤔","😐","😴","👍","🙏","👏","🤝","❤️","🔥","🎉","😭","😡","🤗","🙏","📚","☕","⚽"];
+
+  $("emojiPanel").innerHTML = EMOJIS.map(e => `<button type="button" data-e="${e}">${e}</button>`).join("");
+  $("emojiPanel").addEventListener("click", e => {
+    const b = e.target.closest("button[data-e]");
+    if (!b) return;
+    const input = $("input");
+    input.value += b.dataset.e;
+    input.dispatchEvent(new Event("input"));
+    input.focus();
+  });
+
+  $("emojiBtn").addEventListener("click", () => $("emojiPanel").classList.toggle("show"));
+
+  $("attachBtn").addEventListener("click", () => $("fileInput").click());
+
+  $("fileInput").addEventListener("change", e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      const c = active();
+      c.messages.push({ from: "me", img: reader.result, text: "", time: now(), delivered: false, read: false });
+      appendBubble(last(c));
+      renderList();
+      autoReply(c);
+      e.target.value = "";
+    };
+    reader.readAsDataURL(file);
+  });
+
+  $("cancelReply").addEventListener("click", cancelReply);
+
   const loadUser = () => {
     try {
       const u = JSON.parse(localStorage.getItem(AUTH_KEY));
@@ -519,9 +685,6 @@
       .join("");
   }
 
-  const bubbleHTML = m =>
-    `<div class="msg ${m.from}"><div class="bubble">${esc(m.text)}<span class="meta">${m.time}${m.from === "me" ? " ✓✓" : ""}</span></div></div>`;
-
   function renderChat() {
     const c = active();
     $("headerAvatar").style.background = c.color;
@@ -544,6 +707,7 @@
     active().unread = 0;
     renderList();
     renderChat();
+    cancelReply();
     if (window.innerWidth <= 720) $("app").classList.add("show-chat");
     $("input").focus();
   }
@@ -558,11 +722,13 @@
       }
       setTimeout(() => {
         $("typing")?.remove();
+        // ҳамаи паёмҳои гирифташудаи ин контакт дидашуда мешаванд
+        contact.messages.forEach(m => { if (m.from === "me") { m.delivered = true; m.read = true; } });
         contact.messages.push({ from: "them", text: REPLIES[Math.floor(Math.random() * REPLIES.length)], time: now() });
         if (contact.id !== activeId) {
           contact.unread++;
         } else {
-          appendBubble(last(contact));
+          renderChat();
         }
         renderList();
       }, 1200 + Math.random() * 1400);
@@ -574,12 +740,23 @@
     const text = $("input").value.trim();
     if (!text) return;
     const c = active();
-    c.messages.push({ from: "me", text, time: now() });
+    c.messages.push({ from: "me", text, replyTo: replyTarget, time: now(), delivered: false, read: false });
     $("input").value = "";
     $("sendBtn").disabled = true;
+    cancelReply();
     appendBubble(last(c));
     renderList();
     autoReply(c);
+  });
+
+  $("messages").addEventListener("click", e => {
+    const btn = e.target.closest(".acts button");
+    if (!btn) return;
+    const idx = [...$("messages").querySelectorAll(".msg")].indexOf(btn.closest(".msg"));
+    const m = active().messages[idx];
+    if (!m) return;
+    if (btn.dataset.act === "reply") startReply(m);
+    if (btn.dataset.act === "del") deleteMessage(m);
   });
 
   $("input").addEventListener("input", e => { $("sendBtn").disabled = !e.target.value.trim(); });
