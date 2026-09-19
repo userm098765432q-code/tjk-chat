@@ -3,18 +3,19 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Суҳбат — Мессенҷер</title>
+<title>TJK CHAT — Мессенҷер</title>
 <style>
   :root {
-    --bg: #0f1420;
-    --panel: #161d2e;
-    --panel-2: #1d2740;
-    --text: #e8ecf4;
-    --muted: #8a94aa;
-    --accent: #4f8cff;
-    --accent-2: #6c5cff;
-    --border: rgba(255, 255, 255, 0.07);
-    --bubble: #232d45;
+    --bg: #0a0a0a;
+    --panel: #111111;
+    --panel-2: #1a1a1a;
+    --text: #f2ede1;
+    --muted: #9a917d;
+    --gold: #d4af37;
+    --gold-2: #f5d97a;
+    --gold-soft: rgba(212, 175, 55, 0.15);
+    --border: rgba(212, 175, 55, 0.22);
+    --bubble: #1c1c1c;
   }
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -26,9 +27,83 @@
     overflow: hidden;
   }
 
-  .app { display: flex; height: 100vh; max-width: 1200px; margin: 0 auto; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35); }
+  .app { display: flex; height: 100vh; max-width: 1200px; margin: 0 auto; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6); }
 
-  /* ----- Рӯйхати чап ----- */
+  /* ---------- Пардаи даромадан ---------- */
+  #authScreen {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: radial-gradient(ellipse at top, #1c1506 0%, #0a0a0a 65%);
+    z-index: 50;
+    padding: 18px;
+    overflow-y: auto;
+  }
+  #authScreen.hidden { display: none; }
+  .auth-card {
+    width: 100%;
+    max-width: 400px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 30px 28px;
+    box-shadow: 0 0 50px rgba(212, 175, 55, 0.12), 0 20px 40px rgba(0, 0, 0, 0.5);
+  }
+  .logo {
+    width: 66px;
+    height: 66px;
+    margin: 0 auto 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #d4af37, #8a6d1f);
+    color: #0a0a0a;
+    font-size: 26px;
+    font-weight: 800;
+    box-shadow: 0 0 26px rgba(212, 175, 55, 0.4);
+  }
+  .auth-title { text-align: center; font-size: 26px; font-weight: 800; letter-spacing: 2px; }
+  .auth-title span { color: var(--gold); }
+  .auth-sub { text-align: center; color: var(--muted); font-size: 13.5px; margin: 6px 0 22px; }
+
+  .field { margin-bottom: 14px; }
+  .field label { display: block; font-size: 12.5px; color: var(--gold); font-weight: 600; margin-bottom: 6px; letter-spacing: 0.5px; }
+  .field input {
+    width: 100%;
+    padding: 12px 14px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--panel-2);
+    color: var(--text);
+    font-size: 14.5px;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .field input:focus { border-color: var(--gold); box-shadow: 0 0 0 3px var(--gold-soft); }
+  .field input::placeholder { color: #6b6454; }
+  .field .err { display: block; font-size: 11.5px; color: #ff6b6b; margin-top: 4px; min-height: 14px; }
+  .field input.invalid { border-color: #ff6b6b; }
+
+  .auth-btn {
+    width: 100%;
+    padding: 13px;
+    margin-top: 6px;
+    border: none;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #d4af37, #b08d24);
+    color: #0a0a0a;
+    font-size: 15px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.2s;
+  }
+  .auth-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(212, 175, 55, 0.35); }
+
+  /* ---------- Сорбари чап ---------- */
   .sidebar {
     width: 340px;
     min-width: 340px;
@@ -38,9 +113,8 @@
     border-right: 1px solid var(--border);
   }
   .sidebar-header { padding: 16px; border-bottom: 1px solid var(--border); }
-  .brand { font-size: 20px; font-weight: 700; margin-bottom: 12px; }
-  .brand span { color: var(--accent); }
-
+  .brand { font-size: 20px; font-weight: 800; letter-spacing: 1px; margin-bottom: 12px; }
+  .brand span { color: var(--gold); }
   .search {
     width: 100%;
     padding: 10px 14px;
@@ -51,7 +125,7 @@
     font-size: 14px;
     outline: none;
   }
-  .search:focus { border-color: var(--accent); }
+  .search:focus { border-color: var(--gold); }
   .search::placeholder { color: var(--muted); }
 
   .chat-list { flex: 1; overflow-y: auto; padding: 8px; }
@@ -71,7 +145,7 @@
     cursor: pointer;
   }
   .chat-item:hover, .chat-item.active { background: var(--panel-2); }
-  .chat-item.active { box-shadow: inset 3px 0 0 var(--accent); }
+  .chat-item.active { box-shadow: inset 3px 0 0 var(--gold); }
 
   .avatar {
     width: 46px;
@@ -83,8 +157,9 @@
     border-radius: 50%;
     font-weight: 700;
     font-size: 15px;
-    color: #fff;
+    color: #0a0a0a;
     position: relative;
+    background: linear-gradient(135deg, #d4af37, #8a6d1f);
   }
   .presence {
     position: absolute;
@@ -111,20 +186,31 @@
     align-items: center;
     justify-content: center;
     border-radius: 10px;
-    background: var(--accent);
-    color: #fff;
+    background: var(--gold);
+    color: #0a0a0a;
     font-size: 11px;
     font-weight: 700;
   }
 
   .sidebar-footer { display: flex; align-items: center; gap: 10px; padding: 12px 16px; border-top: 1px solid var(--border); }
-  .me-name { font-size: 14px; font-weight: 600; }
+  .me-info { flex: 1; min-width: 0; }
+  .me-name { font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .me-status { font-size: 12px; color: #4ade80; }
+  .logout-btn {
+    border: 1px solid var(--border);
+    background: none;
+    color: var(--muted);
+    border-radius: 8px;
+    padding: 7px 10px;
+    cursor: pointer;
+    font-size: 15px;
+  }
+  .logout-btn:hover { color: var(--gold); border-color: var(--gold); }
 
-  /* ----- Гуфтугӯ ----- */
+  /* ---------- Гуфтугӯ ---------- */
   .chat { flex: 1; min-width: 0; display: flex; flex-direction: column; }
   .chat-header { display: flex; align-items: center; gap: 12px; padding: 12px 18px; background: var(--panel); border-bottom: 1px solid var(--border); }
-  .back-btn { display: none; }
+  .back-btn { display: none; background: none; border: 1px solid var(--border); color: var(--text); border-radius: 8px; width: 34px; height: 34px; cursor: pointer; }
   .chat-header-name { font-weight: 700; font-size: 16px; }
   .chat-header-status { font-size: 12.5px; color: var(--muted); }
   .chat-header-status.online { color: #4ade80; }
@@ -148,13 +234,14 @@
     from { transform: translateY(6px); opacity: 0; }
     to { transform: none; opacity: 1; }
   }
-  .msg.them .bubble { background: var(--bubble); border-bottom-left-radius: 4px; }
+  .msg.them .bubble { background: var(--bubble); border: 1px solid var(--border); border-bottom-left-radius: 4px; }
   .msg.me .bubble {
-    background: linear-gradient(135deg, var(--accent), var(--accent-2));
-    color: #fff;
+    background: linear-gradient(135deg, #d4af37, #b08d24);
+    color: #0a0a0a;
+    font-weight: 500;
     border-bottom-right-radius: 4px;
   }
-  .meta { display: block; font-size: 10.5px; opacity: 0.65; margin-top: 3px; text-align: right; }
+  .meta { display: block; font-size: 10.5px; opacity: 0.7; margin-top: 3px; text-align: right; }
 
   .typing-dots { display: inline-flex; gap: 4px; padding: 4px 2px; }
   .typing-dots span { width: 7px; height: 7px; border-radius: 50%; background: var(--muted); animation: blink 1.2s infinite; }
@@ -165,7 +252,6 @@
     40% { opacity: 1; transform: translateY(-3px); }
   }
 
-  /* ----- Навиштан ----- */
   .composer { display: flex; gap: 10px; padding: 14px 16px; background: var(--panel); border-top: 1px solid var(--border); }
   .composer input {
     flex: 1;
@@ -178,7 +264,7 @@
     font-family: inherit;
     outline: none;
   }
-  .composer input:focus { border-color: var(--accent); }
+  .composer input:focus { border-color: var(--gold); }
   .composer input::placeholder { color: var(--muted); }
 
   .send-btn {
@@ -186,43 +272,81 @@
     height: 46px;
     border: none;
     border-radius: 50%;
-    background: linear-gradient(135deg, var(--accent), var(--accent-2));
-    color: #fff;
+    background: linear-gradient(135deg, #d4af37, #b08d24);
+    color: #0a0a0a;
     font-size: 18px;
     cursor: pointer;
   }
   .send-btn:disabled { opacity: 0.35; cursor: default; }
 
   ::-webkit-scrollbar { width: 8px; }
-  ::-webkit-scrollbar-thumb { background: rgba(128, 140, 170, 0.3); border-radius: 4px; }
+  ::-webkit-scrollbar-track { background: var(--panel); }
+  ::-webkit-scrollbar-thumb { background: rgba(212, 175, 55, 0.35); border-radius: 4px; }
 
-  /* ----- Мобилӣ ----- */
+  /* ---------- Мобилӣ ---------- */
   @media (max-width: 720px) {
     .app { box-shadow: none; }
     .sidebar { width: 100%; min-width: 0; }
     .chat { display: none; }
     .app.show-chat .chat { display: flex; }
     .app.show-chat .sidebar { display: none; }
-    .back-btn { display: inline-flex; }
+    .back-btn { display: inline-flex; align-items: center; justify-content: center; }
     .bubble { max-width: 82%; }
   }
 </style>
 </head>
 <body>
+
+<!-- ============ ПАРДАИ ДОРОМАДАН ============ -->
+<div id="authScreen">
+  <form class="auth-card" id="authForm" novalidate>
+    <div class="logo">TJ</div>
+    <div class="auth-title">TJK <span>CHAT</span></div>
+    <p class="auth-sub">Барои даромадан маълумоти худро пур кунед</p>
+
+    <div class="field">
+      <label for="firstName">Ном</label>
+      <input type="text" id="firstName" placeholder="Мисол: Далер" autocomplete="given-name">
+      <span class="err" id="err-firstName"></span>
+    </div>
+
+    <div class="field">
+      <label for="lastName">Насаб</label>
+      <input type="text" id="lastName" placeholder="Мисол: Назаров" autocomplete="family-name">
+      <span class="err" id="err-lastName"></span>
+    </div>
+
+    <div class="field">
+      <label for="phone">Рақами телефон</label>
+      <input type="tel" id="phone" placeholder="+992 XX XXX XXXX" autocomplete="tel">
+      <span class="err" id="err-phone"></span>
+    </div>
+
+    <div class="field">
+      <label for="email">Email</label>
+      <input type="email" id="email" placeholder="misol@tjkchat.tj" autocomplete="email">
+      <span class="err" id="err-email"></span>
+    </div>
+
+    <button type="submit" class="auth-btn">ДАРОМАДАН</button>
+  </form>
+</div>
+
 <div class="app" id="app">
 
   <aside class="sidebar">
     <div class="sidebar-header">
-      <div class="brand">Суҳбат<span>.</span></div>
+      <div class="brand">TJK <span>CHAT</span></div>
       <input class="search" id="search" type="text" placeholder="Ҷустуҷӯи гуфтугӯ...">
     </div>
     <div class="chat-list" id="chatList"></div>
     <div class="sidebar-footer">
-      <div class="avatar" style="background: linear-gradient(135deg, #22c55e, #0ea5e9);">Ш</div>
-      <div>
-        <div class="me-name">Шумо</div>
+      <div class="avatar" id="meAvatar">Ш</div>
+      <div class="me-info">
+        <div class="me-name" id="meName">Шумо</div>
         <div class="me-status">● Дар интернет</div>
       </div>
+      <button class="logout-btn" id="logoutBtn" title="Баромадан">⎋</button>
     </div>
   </aside>
 
@@ -245,7 +369,77 @@
 </div>
 
 <script>
-  // ----- Маълумоти намунавӣ -----
+  // ============ АУТЕНТИФИКАТСИЯ ============
+  const AUTH_KEY = "tjkchat_user";
+
+  function loadUser() {
+    try { return JSON.parse(localStorage.getItem(AUTH_KEY)); } catch { return null; }
+  }
+
+  function saveUser(u) {
+    localStorage.setItem(AUTH_KEY, JSON.stringify(u));
+  }
+
+  function logout() {
+    localStorage.removeItem(AUTH_KEY);
+    document.getElementById("app").style.display = "none";
+    document.getElementById("authScreen").classList.remove("hidden");
+    document.getElementById("authForm").reset();
+  }
+
+  const $ = id => document.getElementById(id);
+  const setError = (id, msg) => {
+    $(id).classList.toggle("invalid", !!msg);
+    $("err-" + id).textContent = msg || "";
+  };
+
+  // Тасдиқ (validation)
+  const validators = {
+    firstName: v => v.trim().length >= 2 ? "" : "Ном бояд ҳадди ақал 2 ҳарф бошад.",
+    lastName:  v => v.trim().length >= 2 ? "" : "Насаб бояд ҳадди ақал 2 ҳарф бошад.",
+    phone:     v => /^\+992\s?\d{2}\s?\d{3}\s?\d{4}$/.test(v.trim()) ? "" : "Шакл: +992 XX XXX XXXX",
+    email:     v => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim()) ? "" : "Email-и дуруст ворид кунед."
+  };
+
+  function validateField(id) {
+    const val = $(id).value;
+    const err = validators[id](val);
+    setError(id, err);
+    return !err;
+  }
+
+  ["firstName", "lastName", "phone", "email"].forEach(id => {
+    $(id).addEventListener("input", () => {
+      if ($("err-" + id).textContent) validateField(id);
+    });
+  });
+
+  $("authForm").addEventListener("submit", e => {
+    e.preventDefault();
+    const ok = ["firstName", "lastName", "phone", "email"].map(validateField).every(Boolean);
+    if (!ok) return;
+    saveUser({
+      firstName: $("firstName").value.trim(),
+      lastName: $("lastName").value.trim(),
+      phone: $("phone").value.trim(),
+      email: $("email").value.trim(),
+      joinedAt: new Date().toISOString()
+    });
+    startApp();
+  });
+
+  function startApp() {
+    const u = loadUser();
+    if (!u) return;
+    $("authScreen").classList.add("hidden");
+    $("app").style.display = "";
+    $("meName").textContent = u.firstName + " " + u.lastName;
+    $("meAvatar").textContent = (u.firstName[0] + u.lastName[0]).toUpperCase();
+    renderList();
+    renderChat();
+  }
+
+  // ============ МАЪЛУМОТИ НАМУНАВӢ ============
   const CONTACTS = [
     {
       id: "firuza", name: "Фирӯза Раҳимова", initials: "ФР",
@@ -279,7 +473,7 @@
       color: "linear-gradient(135deg, #f59e0b, #ef4444)", online: true, unread: 0,
       messages: [
         { from: "them", text: "Лоиҳа тайёр аст ✅ Файлҳоро фиристодам.", time: "09:02" },
-        { from: "me", text: "Афсонавӣ! Ҳамааш бе хато кор мекунад.", time: "09:05" }
+        { from: "me", text: "Ташаккур! Ҳамааш бе хато кор мекунад.", time: "09:05" }
       ]
     },
     {
@@ -303,8 +497,7 @@
     "Биё фардо чой нӯшем ☕"
   ];
 
-  // ----- Кӯмаккунандаҳо -----
-  const $ = id => document.getElementById(id);
+  // ============ КӮМАККУНАНДАҲО ============
   const esc = s => s.replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
   const now = () => {
     const d = new Date();
@@ -316,7 +509,7 @@
   const last = c => c.messages[c.messages.length - 1];
   const scrollDown = () => { const m = $("messages"); m.scrollTop = m.scrollHeight; };
 
-  // ----- Расмкунӣ -----
+  // ============ РАСМКУНӢ ============
   function renderList(filter = $("search").value) {
     const f = filter.toLowerCase();
     $("chatList").innerHTML = CONTACTS
@@ -371,7 +564,7 @@
     $("input").focus();
   }
 
-  // ----- Ирсоли паём ва ҷавоби худкор -----
+  // ============ ИРСОЛИ ПАЁМ ВА ҶАВОБИ ХУДКОР ============
   function autoReply(contact) {
     setTimeout(() => {
       if (contact.id === activeId) {
@@ -412,9 +605,11 @@
     if (item) openChat(item.dataset.id);
   });
   $("backBtn").addEventListener("click", () => $("app").classList.remove("show-chat"));
+  $("logoutBtn").addEventListener("click", logout);
 
-  renderList();
-  renderChat();
+  // ============ ОҒОЗ ============
+  if (!loadUser()) $("app").style.display = "none";
+  startApp();
 </script>
 </body>
 </html>
