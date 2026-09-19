@@ -1,5 +1,7 @@
 # TJK CHAT — Мессенҷер
 
+[![E2E](https://github.com/userm098765432q-code/tjk-chat/actions/workflows/e2e.yml/badge.svg)](https://github.com/userm098765432q-code/tjk-chat/actions/workflows/e2e.yml)
+
 Мессенҷери веб бо интерфейси тоҷикӣ ва тарҳи **сиёҳу тиллоӣ** (HTML/CSS/JS дар як файл).
 
 ## Имконият
