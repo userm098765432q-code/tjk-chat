@@ -1,0 +1,996 @@
+<!DOCTYPE html>
+<html lang="tg">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TJK CHAT — Мессенҷер</title>
+<style>
+  :root {
+    --bg: #0a0a0a;
+    --panel: #111111;
+    --panel-2: #1a1a1a;
+    --text: #f2ede1;
+    --muted: #9a917d;
+    --gold: #d4af37;
+    --gold-soft: rgba(212, 175, 55, 0.15);
+    --gold-grad: linear-gradient(135deg, #d4af37, #b08d24);
+    --border: rgba(212, 175, 55, 0.22);
+    --bubble: #1c1c1c;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    font-family: "Segoe UI", system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    overflow: hidden;
+  }
+
+  .app { display: flex; height: 100vh; max-width: 1200px; margin: 0 auto; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6); }
+
+  /* ---------- Пардаи даромадан ---------- */
+  #authScreen {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: radial-gradient(ellipse at top, #1c1506 0%, #0a0a0a 65%);
+    z-index: 50;
+    padding: 18px;
+    overflow-y: auto;
+  }
+  #authScreen.hidden { display: none; }
+  .auth-card {
+    width: 100%;
+    max-width: 400px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 30px 28px;
+    box-shadow: 0 0 50px rgba(212, 175, 55, 0.12), 0 20px 40px rgba(0, 0, 0, 0.5);
+  }
+  .logo {
+    width: 66px;
+    height: 66px;
+    margin: 0 auto 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: var(--gold-grad);
+    color: var(--bg);
+    font-size: 26px;
+    font-weight: 800;
+    box-shadow: 0 0 26px rgba(212, 175, 55, 0.4);
+  }
+  .auth-title { text-align: center; font-size: 26px; font-weight: 800; letter-spacing: 2px; }
+  .auth-title span { color: var(--gold); }
+  .auth-sub { text-align: center; color: var(--muted); font-size: 13.5px; margin: 6px 0 22px; }
+
+  .field { margin-bottom: 14px; }
+  .field label { display: block; font-size: 12.5px; color: var(--gold); font-weight: 600; margin-bottom: 6px; letter-spacing: 0.5px; }
+  .field input {
+    width: 100%;
+    padding: 12px 14px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--panel-2);
+    color: var(--text);
+    font-size: 14.5px;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .field input:focus { border-color: var(--gold); box-shadow: 0 0 0 3px var(--gold-soft); }
+  .field input::placeholder { color: var(--muted); }
+  .field .err { display: block; font-size: 11.5px; color: #ff6b6b; margin-top: 4px; min-height: 14px; }
+  .field input.invalid { border-color: #ff6b6b; }
+
+  .auth-btn {
+    width: 100%;
+    padding: 13px;
+    margin-top: 6px;
+    border: none;
+    border-radius: 10px;
+    background: var(--gold-grad);
+    color: var(--bg);
+    font-size: 15px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.2s;
+  }
+  .auth-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(212, 175, 55, 0.35); }
+
+  /* ---------- Сорбари чап ---------- */
+  .sidebar {
+    width: 340px;
+    min-width: 340px;
+    display: flex;
+    flex-direction: column;
+    background: var(--panel);
+    border-right: 1px solid var(--border);
+  }
+  .sidebar-header { padding: 16px; border-bottom: 1px solid var(--border); }
+  .brand { font-size: 20px; font-weight: 800; letter-spacing: 1px; margin-bottom: 12px; }
+  .brand span { color: var(--gold); }
+  .search {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--panel-2);
+    color: var(--text);
+    font-size: 14px;
+    outline: none;
+  }
+  .search:focus { border-color: var(--gold); }
+  .search::placeholder { color: var(--muted); }
+
+  .chat-list { flex: 1; overflow-y: auto; padding: 8px; }
+
+  .chat-item {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    width: 100%;
+    padding: 10px 12px;
+    border: none;
+    border-radius: 12px;
+    background: none;
+    color: var(--text);
+    font-family: inherit;
+    text-align: left;
+    cursor: pointer;
+  }
+  .chat-item:hover, .chat-item.active { background: var(--panel-2); }
+  .chat-item.active { box-shadow: inset 3px 0 0 var(--gold); }
+
+  .avatar {
+    width: 46px;
+    height: 46px;
+    min-width: 46px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    font-weight: 700;
+    font-size: 15px;
+    color: var(--bg);
+    position: relative;
+    background: var(--gold-grad);
+  }
+  .presence {
+    position: absolute;
+    bottom: -1px;
+    right: -1px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: #4ade80;
+    border: 2px solid var(--panel);
+  }
+  .presence.off { background: #64748b; }
+
+  .chat-item-main { flex: 1; min-width: 0; }
+  .chat-item-top, .chat-item-bottom { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+  .chat-item-name { font-weight: 600; font-size: 14.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .chat-item-time { font-size: 11.5px; color: var(--muted); }
+  .chat-item-preview { font-size: 13px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .badge {
+    min-width: 20px;
+    height: 20px;
+    padding: 0 6px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    background: var(--gold);
+    color: var(--bg);
+    font-size: 11px;
+    font-weight: 700;
+  }
+
+  .sidebar-footer { display: flex; align-items: center; gap: 10px; padding: 12px 16px; border-top: 1px solid var(--border); }
+  .me-info { flex: 1; min-width: 0; }
+  .me-name { font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .me-status { font-size: 12px; color: #4ade80; }
+  .logout-btn {
+    border: 1px solid var(--border);
+    background: none;
+    color: var(--muted);
+    border-radius: 8px;
+    padding: 7px 10px;
+    cursor: pointer;
+    font-size: 15px;
+  }
+  .logout-btn:hover { color: var(--gold); border-color: var(--gold); }
+
+  /* ---------- Гуфтугӯ ---------- */
+  .chat { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+  .chat-header { display: flex; align-items: center; gap: 12px; padding: 12px 18px; background: var(--panel); border-bottom: 1px solid var(--border); }
+  .back-btn { display: none; background: none; border: 1px solid var(--border); color: var(--text); border-radius: 8px; width: 34px; height: 34px; cursor: pointer; }
+  .chat-header-name { font-weight: 700; font-size: 16px; }
+  .chat-header-status { font-size: 12.5px; color: var(--muted); }
+  .chat-header-status.online { color: #4ade80; }
+
+  .messages { flex: 1; overflow-y: auto; padding: 20px 22px 10px; display: flex; flex-direction: column; gap: 6px; }
+
+  .msg { display: flex; }
+  .msg.them { justify-content: flex-start; }
+  .msg.me { justify-content: flex-end; }
+
+  .bubble {
+    max-width: 68%;
+    padding: 9px 13px 6px;
+    border-radius: 14px;
+    font-size: 14.5px;
+    line-height: 1.45;
+    word-wrap: break-word;
+    animation: pop 0.18s ease-out;
+  }
+  @keyframes pop {
+    from { transform: translateY(6px); opacity: 0; }
+    to { transform: none; opacity: 1; }
+  }
+  .msg.them .bubble { background: var(--bubble); border: 1px solid var(--border); border-bottom-left-radius: 4px; }
+  .msg.me .bubble {
+    background: var(--gold-grad);
+    color: var(--bg);
+    font-weight: 500;
+    border-bottom-right-radius: 4px;
+  }
+  .meta { display: block; font-size: 10.5px; opacity: 0.7; margin-top: 3px; text-align: right; }
+
+  .typing-dots { display: inline-flex; gap: 4px; padding: 4px 2px; }
+  .typing-dots span { width: 7px; height: 7px; border-radius: 50%; background: var(--muted); animation: blink 1.2s infinite; }
+  .typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+  .typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes blink {
+    0%, 80%, 100% { opacity: 0.25; }
+    40% { opacity: 1; transform: translateY(-3px); }
+  }
+
+  .composer { display: flex; gap: 10px; padding: 14px 16px; background: var(--panel); border-top: 1px solid var(--border); }
+  .composer input {
+    flex: 1;
+    padding: 12px 16px;
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    background: var(--panel-2);
+    color: var(--text);
+    font-size: 14.5px;
+    font-family: inherit;
+    outline: none;
+  }
+  .composer input:focus { border-color: var(--gold); }
+  .composer input::placeholder { color: var(--muted); }
+
+  .send-btn {
+    width: 46px;
+    height: 46px;
+    border: none;
+    border-radius: 50%;
+    background: var(--gold-grad);
+    color: var(--bg);
+    font-size: 18px;
+    cursor: pointer;
+  }
+  .send-btn:disabled { opacity: 0.35; cursor: default; }
+
+  /* ---------- Воситаҳои WhatsApp-монанд ---------- */
+  .composer-btn {
+    width: 42px;
+    height: 42px;
+    align-self: center;
+    border: none;
+    border-radius: 50%;
+    background: none;
+    color: var(--muted);
+    font-size: 20px;
+    cursor: pointer;
+  }
+  .composer-btn:hover { color: var(--gold); background: var(--panel-2); }
+
+  .emoji-panel {
+    display: none;
+    flex-wrap: wrap;
+    gap: 2px;
+    padding: 8px;
+    margin: 0 16px 8px;
+    background: var(--panel-2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    max-height: 150px;
+    overflow-y: auto;
+  }
+  .emoji-panel.show { display: flex; }
+  .emoji-panel button {
+    width: 34px;
+    height: 34px;
+    border: none;
+    background: none;
+    font-size: 20px;
+    border-radius: 8px;
+    cursor: pointer;
+  }
+  .emoji-panel button:hover { background: var(--gold-soft); }
+
+  .reply-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0 16px 8px;
+    padding: 8px 12px;
+    background: var(--panel-2);
+    border-left: 3px solid var(--gold);
+    border-radius: 8px;
+    font-size: 13px;
+  }
+  .reply-bar .rt { flex: 1; min-width: 0; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .reply-bar .rt b { color: var(--gold); }
+  .reply-bar button { border: none; background: none; color: var(--muted); cursor: pointer; font-size: 15px; }
+  .reply-bar button:hover { color: var(--gold); }
+
+  .acts { display: flex; gap: 2px; align-self: center; opacity: 0; transition: opacity 0.15s; }
+  .msg:hover .acts { opacity: 1; }
+  @media (hover: none) { .acts { opacity: 1; } }
+  .acts button {
+    border: none;
+    background: none;
+    color: var(--muted);
+    cursor: pointer;
+    font-size: 14px;
+    padding: 2px 4px;
+    border-radius: 6px;
+  }
+  .acts button:hover { color: var(--gold); background: var(--panel-2); }
+
+  .msg-img { max-width: 220px; max-height: 220px; border-radius: 10px; display: block; margin-bottom: 3px; }
+
+  .quote {
+    border-left: 3px solid var(--gold);
+    background: var(--gold-soft);
+    padding: 4px 8px;
+    border-radius: 6px;
+    margin-bottom: 5px;
+    font-size: 12.5px;
+    color: var(--muted);
+    max-height: 3em;
+    overflow: hidden;
+  }
+  .quote b { display: block; color: var(--gold); font-size: 12px; }
+
+  .tick { letter-spacing: -2px; }
+  .tick.read { color: #53bdeb; }
+  .deleted { font-style: italic; color: var(--muted); }
+
+  /* ---------- Паёми овозӣ ---------- */
+  .voice { display: flex; align-items: center; gap: 8px; min-width: 180px; padding: 2px 0 4px; }
+  .voice-play {
+    width: 34px;
+    height: 34px;
+    border: none;
+    border-radius: 50%;
+    background: var(--gold);
+    color: var(--bg);
+    font-size: 14px;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+  .voice-wave { flex: 1; display: flex; align-items: center; gap: 2px; height: 24px; }
+  .voice-wave i {
+    width: 3px;
+    border-radius: 2px;
+    background: currentColor;
+    opacity: 0.45;
+    display: block;
+  }
+  .voice-wave i.on { opacity: 1; }
+  .voice-time { font-size: 11.5px; opacity: 0.75; }
+
+  .rec-bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 0 16px 8px;
+    padding: 8px 14px;
+    background: var(--panel-2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    font-size: 14px;
+  }
+  .rec-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #e53e3e;
+    animation: recblink 1s infinite;
+  }
+  @keyframes recblink { 50% { opacity: 0.25; } }
+  .rec-time { font-variant-numeric: tabular-nums; color: var(--gold); font-weight: 700; }
+  .rec-hint { flex: 1; color: var(--muted); font-size: 12.5px; }
+  .rec-bar button {
+    border: none;
+    background: none;
+    cursor: pointer;
+    font-size: 16px;
+    padding: 4px 6px;
+    border-radius: 6px;
+    color: var(--muted);
+  }
+  .rec-bar button:hover { color: var(--text); background: var(--bubble); }
+  .rec-bar .rec-send { color: var(--gold); font-weight: 700; }
+
+  ::-webkit-scrollbar { width: 8px; }
+  ::-webkit-scrollbar-track { background: var(--panel); }
+  ::-webkit-scrollbar-thumb { background: rgba(212, 175, 55, 0.35); border-radius: 4px; }
+
+  /* ---------- Мобилӣ ---------- */
+  @media (max-width: 720px) {
+    .app { box-shadow: none; }
+    .sidebar { width: 100%; min-width: 0; }
+    .chat { display: none; }
+    .app.show-chat .chat { display: flex; }
+    .app.show-chat .sidebar { display: none; }
+    .back-btn { display: inline-flex; align-items: center; justify-content: center; }
+    .bubble { max-width: 82%; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ============ ПАРДАИ ДОРОМАДАН ============ -->
+<div id="authScreen">
+  <form class="auth-card" id="authForm" novalidate>
+    <div class="logo">TJ</div>
+    <div class="auth-title">TJK <span>CHAT</span></div>
+    <p class="auth-sub">Барои даромадан маълумоти худро пур кунед</p>
+
+    <div class="field">
+      <label for="firstName">Ном</label>
+      <input type="text" id="firstName" placeholder="Мисол: Далер" autocomplete="given-name">
+      <span class="err" id="err-firstName"></span>
+    </div>
+
+    <div class="field">
+      <label for="lastName">Насаб</label>
+      <input type="text" id="lastName" placeholder="Мисол: Назаров" autocomplete="family-name">
+      <span class="err" id="err-lastName"></span>
+    </div>
+
+    <div class="field">
+      <label for="phone">Рақами телефон</label>
+      <input type="tel" id="phone" placeholder="+992 XX XXX XXXX" autocomplete="tel">
+      <span class="err" id="err-phone"></span>
+    </div>
+
+    <div class="field">
+      <label for="email">Email</label>
+      <input type="email" id="email" placeholder="misol@tjkchat.tj" autocomplete="email">
+      <span class="err" id="err-email"></span>
+    </div>
+
+    <button type="submit" class="auth-btn">ДАРОМАДАН</button>
+  </form>
+</div>
+
+<div class="app" id="app">
+
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="brand">TJK <span>CHAT</span></div>
+      <input class="search" id="search" type="text" placeholder="Ҷустуҷӯи гуфтугӯ...">
+    </div>
+    <div class="chat-list" id="chatList"></div>
+    <div class="sidebar-footer">
+      <div class="avatar" id="meAvatar">Ш</div>
+      <div class="me-info">
+        <div class="me-name" id="meName">Шумо</div>
+        <div class="me-status">● Дар интернет</div>
+      </div>
+      <button class="logout-btn" id="logoutBtn" title="Баромадан">⎋</button>
+    </div>
+  </aside>
+
+  <main class="chat">
+    <div class="chat-header">
+      <button class="back-btn" id="backBtn" title="Бозгашт">←</button>
+      <div class="avatar" id="headerAvatar"></div>
+      <div>
+        <div class="chat-header-name" id="headerName"></div>
+        <div class="chat-header-status" id="headerStatus"></div>
+      </div>
+    </div>
+    <div class="messages" id="messages"></div>
+    <div class="emoji-panel" id="emojiPanel"></div>
+    <div class="reply-bar" id="replyBar" hidden>
+      <span class="rt" id="replyText"></span>
+      <button type="button" id="cancelReply" title="Бекор кардан">✕</button>
+    </div>
+    <form class="composer" id="composer" autocomplete="off">
+      <button type="button" class="composer-btn" id="attachBtn" title="Иловакуни сурат">📎</button>
+      <button type="button" class="composer-btn" id="emojiBtn" title="Эмодзи">😊</button>
+      <input type="text" id="input" placeholder="Паём нависед...">
+      <button type="button" class="send-btn" id="micBtn" title="Паёми овозӣ" style="background:none;color:var(--muted)">🎙</button>
+      <button type="submit" class="send-btn" id="sendBtn" disabled>➤</button>
+      <input type="file" id="fileInput" accept="image/*" hidden>
+    </form>
+    <div class="rec-bar" id="recBar" hidden>
+      <span class="rec-dot"></span>
+      <span class="rec-time" id="recTime">0:00</span>
+      <span class="rec-hint">Сабт... ҳадди аксар 2 дақиқа</span>
+      <button type="button" id="recCancel" title="Бекор кардан">🗑</button>
+      <button type="button" class="rec-send" id="recSend" title="Фиристодан">➤</button>
+    </div>
+  </main>
+
+</div>
+
+<script>
+  // ============ АУТЕНТИФИКАТСИЯ ============
+  const AUTH_KEY = "tjkchat_user";
+  const FIELDS = ["firstName", "lastName", "phone", "email"];
+  const $ = id => document.getElementById(id);
+
+  // ============ ВАҲАЛАТИ ҶАВОБ / ПАЁМ ============
+  let replyTarget = null;  // паёме, ки ҷавоб медиҳем
+  const fmtSec = s => Math.floor(s / 60) + ":" + String(s % 60).padStart(2, "0");
+
+  const voiceHTML = m => {
+    const bars = Array.from({ length: 18 }, (_, i) =>
+      `<i data-i="${i}" style="height:${6 + Math.round(14 * Math.abs(Math.sin(i * 1.7 + (m.dur || 0))))}px"></i>`).join("");
+    return `<span class="voice">
+      <button class="voice-play" data-act="play" title="Пахш">▶</button>
+      <span class="voice-wave">${bars}</span>
+      <span class="voice-time">${fmtSec(m.dur || 0)}</span>
+      <audio src="${m.audio}" preload="metadata" style="display:none"></audio>
+    </span>`;
+  };
+
+  const bubbleHTML = m => {
+    const mine = m.from === "me";
+    const quote = m.replyTo ? `<div class="quote"><b>${esc(m.replyTo.name)}</b>${esc(m.replyTo.text)}</div>` : "";
+    const img = m.img ? `<img class="msg-img" src="${m.img}" alt="">` : "";
+    const voice = m.audio && !m.deleted ? voiceHTML(m) : "";
+    const body = m.deleted ? '<span class="deleted">🚫 Ин паём нест карда шуд</span>' : esc(m.text);
+    const acts = m.deleted ? "" : `
+      <span class="acts">
+        <button data-act="reply" title="Ҷавоб">↩</button>
+        ${mine ? `<button data-act="del" title="Нест кардан">🗑</button>` : ""}
+      </span>`;
+    const ticks = mine ? `<span class="tick${m.read ? " read" : ""}">${m.read ? "✓✓" : m.delivered ? "✓✓" : "✓"}</span>` : "";
+    return `<div class="msg ${m.from}">${acts}<div class="bubble">${quote}${voice}${img}${body}<span class="meta">${m.time} ${ticks}</span></div></div>`;
+  };
+
+  function startReply(m) {
+    const label = m.audio ? "🎙 Овоз" : m.img ? "📷 Сурат" : m.text;
+    replyTarget = { name: m.from === "me" ? "Шумо" : active().name, text: label };
+    $("replyText").innerHTML = `<b>${esc(replyTarget.name)}</b> ${esc(replyTarget.text)}`;
+    $("replyBar").hidden = false;
+    $("input").focus();
+  }
+
+  function cancelReply() {
+    replyTarget = null;
+    $("replyBar").hidden = true;
+  }
+
+  function deleteMessage(m) {
+    m.deleted = true;
+    m.text = "";
+    m.img = null;
+    m.audio = null;
+    renderChat();
+    renderList();
+    saveChats();
+  }
+
+  // ============ ЭМОДЗИ ВА СУРАТ ============
+  const EMOJIS = ["😀","😂","🥹","😍","😎","🤔","😐","😴","👍","🙏","👏","🤝","❤️","🔥","🎉","😭","😡","🤗","🙏","📚","☕","⚽"];
+
+  $("emojiPanel").innerHTML = EMOJIS.map(e => `<button type="button" data-e="${e}">${e}</button>`).join("");
+  $("emojiPanel").addEventListener("click", e => {
+    const b = e.target.closest("button[data-e]");
+    if (!b) return;
+    const input = $("input");
+    input.value += b.dataset.e;
+    input.dispatchEvent(new Event("input"));
+    input.focus();
+  });
+
+  $("emojiBtn").addEventListener("click", () => $("emojiPanel").classList.toggle("show"));
+
+  $("attachBtn").addEventListener("click", () => $("fileInput").click());
+
+  $("fileInput").addEventListener("change", e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      const c = active();
+      c.messages.push({ from: "me", img: reader.result, text: "", time: now(), delivered: false, read: false });
+      appendBubble(last(c));
+      renderList();
+      saveChats();
+      autoReply(c);
+      e.target.value = "";
+    };
+    reader.readAsDataURL(file);
+  });
+
+  $("cancelReply").addEventListener("click", cancelReply);
+
+  // ============ ПАЁМИ ОВОЗӢ (MediaRecorder) ============
+  const REC_MAX_MS = 120000;  // ҳадди аксар 2 дақиқа
+  let rec = null;             // { recorder, stream, chunks, startedAt, timer }
+
+  function stopRecording(send) {
+    if (!rec) return;
+    const { recorder, stream, timer, chunks, startedAt } = rec;
+    clearInterval(timer);
+    rec = null;
+    $("recBar").hidden = true;
+    stream.getTracks().forEach(t => t.stop());
+    if (!send) return;  // бекоркунӣ — chunk-ҳоро партоем
+    const seconds = Math.round((Date.now() - startedAt) / 1000);
+    // натиҷа дар onstop коркард мешавад; маълумоти зарурӣ бо recorder мепайвандем
+    recorder.__sendSeconds = seconds;
+    recorder.stop();
+  }
+
+  function startRecording() {
+    if (rec) return;
+    if (!navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === "undefined") {
+      alert("Сабти овоз дар ин браузер дастгирӣ намешавад.");
+      return;
+    }
+    navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
+      const mime = MediaRecorder.isTypeSupported("audio/webm") ? "audio/webm" : "";
+      const recorder = new MediaRecorder(stream, mime ? { mimeType: mime } : undefined);
+      const startedAt = Date.now();
+      const chunks = [];
+      rec = { recorder, stream, chunks, startedAt, timer: null };
+      // chunks ба recorder пайваст аст — баъди rec=null кор мекунад
+      recorder.__chunks = chunks;
+      recorder.ondataavailable = e => { if (e.data.size) recorder.__chunks.push(e.data); };
+      recorder.onstop = () => {
+        const seconds = recorder.__sendSeconds || 0;
+        const chunks = recorder.__chunks || [];
+        if (!chunks.length || seconds < 1) return;
+        const blob = new Blob(chunks, { type: recorder.mimeType || "audio/webm" });
+        const reader = new FileReader();
+        reader.onload = () => {
+          const c = active();
+          c.messages.push({ from: "me", audio: reader.result, dur: seconds, text: "", time: now(), delivered: false, read: false });
+          appendBubble(last(c));
+          renderList();
+          saveChats();
+          autoReply(c);
+        };
+        reader.readAsDataURL(blob);
+      };
+      recorder.start(250);
+      $("recBar").hidden = false;
+      $("recTime").textContent = "0:00";
+      rec.timer = setInterval(() => {
+        const sec = Math.floor((Date.now() - startedAt) / 1000);
+        $("recTime").textContent = fmtSec(sec);
+        if (Date.now() - startedAt >= REC_MAX_MS) stopRecording(true);  // худкор фиристода мешавад
+      }, 250);
+    }).catch(() => {
+      alert("Дастрасӣ ба микрофон дода нашуд.");
+    });
+  }
+
+  $("micBtn").addEventListener("click", startRecording);
+  $("recSend").addEventListener("click", () => stopRecording(true));
+  $("recCancel").addEventListener("click", () => stopRecording(false));
+
+  const loadUser = () => {
+    try {
+      const u = JSON.parse(localStorage.getItem(AUTH_KEY));
+      return FIELDS.every(f => typeof u?.[f] === "string" && u[f]) ? u : null;
+    } catch { return null; }
+  };
+
+  function logout() {
+    localStorage.removeItem(AUTH_KEY);
+    $("app").style.display = "none";
+    $("authScreen").classList.remove("hidden");
+    $("authForm").reset();
+  }
+
+  // Тасдиқ (validation)
+  const validators = {
+    firstName: v => v.trim().length >= 2 ? "" : "Ном бояд ҳадди ақал 2 ҳарф бошад.",
+    lastName:  v => v.trim().length >= 2 ? "" : "Насаб бояд ҳадди ақал 2 ҳарф бошад.",
+    phone:     v => /^\+992\s?\d{2}\s?\d{3}\s?\d{4}$/.test(v.trim()) ? "" : "Шакл: +992 XX XXX XXXX",
+    email:     v => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim()) ? "" : "Email-и дуруст ворид кунед."
+  };
+
+  function validateField(id) {
+    const msg = validators[id]($(id).value);
+    $(id).classList.toggle("invalid", !!msg);
+    $("err-" + id).textContent = msg;
+    return !msg;
+  }
+
+  FIELDS.forEach(id => $(id).addEventListener("input", () => {
+    if ($("err-" + id).textContent) validateField(id);
+  }));
+
+  $("authForm").addEventListener("submit", e => {
+    e.preventDefault();
+    if (!FIELDS.map(validateField).every(Boolean)) return;
+    const u = {};
+    FIELDS.forEach(id => u[id] = $(id).value.trim());
+    localStorage.setItem(AUTH_KEY, JSON.stringify(u));
+    startApp();
+  });
+
+  function startApp() {
+    const u = loadUser();
+    if (!u) { $("app").style.display = "none"; return; }
+    $("authScreen").classList.add("hidden");
+    $("app").style.display = "";
+    $("meName").textContent = u.firstName + " " + u.lastName;
+    $("meAvatar").textContent = (u.firstName[0] + u.lastName[0]).toUpperCase();
+    const saved = loadChats();
+    // аз намунаи тоза нусха мегирем, то демо-маълумот дахолатпазир нашаванд
+    CONTACTS = (saved || DEMO_CONTACTS).map(c => ({ ...c, messages: c.messages.map(m => ({ ...m })) }));
+    activeId = CONTACTS[0].id;
+    renderList();
+    renderChat();
+  }
+
+  // ============ МАЪЛУМОТИ НАМУНАВӢ ============
+  // Нусхаи аслии намунавӣ — ҳар дафъа startApp аз он нусха гирифта мешавад
+  const DEMO_CONTACTS = [
+    {
+      id: "firuza", name: "Фирӯза Раҳимова", initials: "ФР",
+      color: "linear-gradient(135deg, #e6537a, #ff8a5c)", online: true, unread: 2,
+      messages: [
+        { from: "them", text: "Салом! Имрӯз ба китобхона меравам. Бо ту ҳамроҳам?", time: "11:58" },
+        { from: "me", text: "Салом! Афсӯс, имрӯз кор дорам 😔", time: "12:02" },
+        { from: "them", text: "Бад нагузашт! Фардо соати 5 бо шумо тамос мегирам.", time: "12:04" },
+        { from: "them", text: "Интизор мешавам 📚", time: "12:04" }
+      ]
+    },
+    {
+      id: "daler", name: "Далер Назаров", initials: "ДН",
+      color: "linear-gradient(135deg, #4f8cff, #22d3ee)", online: true, unread: 0,
+      messages: [
+        { from: "me", text: "Далер, китобе ки ваъда карда будӣ кӯҷост? 😄", time: "10:10" },
+        { from: "them", text: "Китобро фиристодам 📚", time: "10:31" }
+      ]
+    },
+    {
+      id: "madina", name: "Мадина Ҷалолова", initials: "МҶ",
+      color: "linear-gradient(135deg, #a855f7, #ec4899)", online: false, lastSeen: "Пеш аз 1 соат", unread: 1,
+      messages: [
+        { from: "them", text: "Салом! Машғулияти соати 6-ро ба 7 гузоштан мумкин?", time: "09:15" },
+        { from: "me", text: "Хуб аст, соати 7 шудан мумкин.", time: "09:40" },
+        { from: "them", text: "Ташаккури калон! 🙏", time: "09:42" }
+      ]
+    },
+    {
+      id: "sino", name: "Сино Каримов", initials: "СК",
+      color: "linear-gradient(135deg, #f59e0b, #ef4444)", online: true, unread: 0,
+      messages: [
+        { from: "them", text: "Лоиҳа тайёр аст ✅ Файлҳоро фиристодам.", time: "09:02" },
+        { from: "me", text: "Ташаккур! Ҳамааш бе хато кор мекунад.", time: "09:05" }
+      ]
+    },
+    {
+      id: "nigina", name: "Ниғина Юсупова", initials: "НЮ",
+      color: "linear-gradient(135deg, #10b981, #3b82f6)", online: false, lastSeen: "Пеш аз 2 соат", unread: 0,
+      messages: [
+        { from: "me", text: "Ниғина, ташаккур барои кӯмаки дирӯз!", time: "17:20" },
+        { from: "them", text: "Дарҳои ҳама вақт кушодааст 😊", time: "17:44" }
+      ]
+    }
+  ];
+
+  // ============ НИГОҲДОРИИ ЧАТҲО ДАР LOCALSTORAGE ============
+  const CHATS_KEY = "tjkchat_chats";
+
+  const validMsg = m => m && typeof m === "object"
+    && (m.from === "me" || m.from === "them")
+    && typeof m.time === "string"
+    && (typeof m.text === "string" || (m.img === null || typeof m.img === "string"));
+
+  function loadChats() {
+    try {
+      const saved = JSON.parse(localStorage.getItem(CHATS_KEY));
+      if (!saved || typeof saved !== "object") return null;
+      return DEMO_CONTACTS.map(c => {
+        const msgs = Array.isArray(saved[c.id]) ? saved[c.id].filter(validMsg) : null;
+        return msgs && msgs.length ? { ...c, messages: msgs } : c;
+      });
+    } catch { return null; }
+  }
+
+  function saveChats() {
+    try {
+      const data = {};
+      CONTACTS.forEach(c => data[c.id] = c.messages);
+      localStorage.setItem(CHATS_KEY, JSON.stringify(data));
+    } catch {
+      // quota пур шуд (масалан, суратҳои калон) — ин helo бе хато мегузарад
+    }
+  }
+
+  const REPLIES = [
+    "Ҳа, албатта! 😊",
+    "Хуб аст, мувофиқ шудем.",
+    "Айнан, дуруст мегӯӣ 👍",
+    "Имрӯз каме машғулам, баъд менависам.",
+    "Ташаккури бисьёр! 🙏",
+    "Фардо соати 6 шуда бошем?",
+    "Аҷоиб! Табрик мекунам 🎉",
+    "Биё фардо чой нӯшем ☕"
+  ];
+
+  // ============ КӮМАККУНАНДАҲО ============
+  const esc = s => s.replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  const now = () => {
+    const d = new Date();
+    return String(d.getHours()).padStart(2, "0") + ":" + String(d.getMinutes()).padStart(2, "0");
+  };
+
+  let activeId = null;
+  let CONTACTS = [];
+  const active = () => CONTACTS.find(c => c.id === activeId);
+  const last = c => c.messages[c.messages.length - 1];
+  const scrollDown = () => { const m = $("messages"); m.scrollTop = m.scrollHeight; };
+
+  // ============ РАСМКУНӢ ============
+  function renderList() {
+    const f = $("search").value.toLowerCase();
+    $("chatList").innerHTML = CONTACTS
+      .filter(c => c.name.toLowerCase().includes(f))
+      .map(c => `
+        <button class="chat-item${c.id === activeId ? " active" : ""}" data-id="${c.id}">
+          <div class="avatar" style="background:${c.color}">${c.initials}<span class="presence${c.online ? "" : " off"}"></span></div>
+          <div class="chat-item-main">
+            <div class="chat-item-top">
+              <span class="chat-item-name">${c.name}</span>
+              <span class="chat-item-time">${last(c).time}</span>
+            </div>
+            <div class="chat-item-bottom">
+              <span class="chat-item-preview">${esc(last(c).text)}</span>
+              ${c.unread ? `<span class="badge">${c.unread}</span>` : ""}
+            </div>
+          </div>
+        </button>`)
+      .join("");
+  }
+
+  function renderChat() {
+    const c = active();
+    $("headerAvatar").style.background = c.color;
+    $("headerAvatar").textContent = c.initials;
+    $("headerName").textContent = c.name;
+    $("headerStatus").textContent = c.online ? "● Дар интернет" : "● " + (c.lastSeen || "Илғоқ нест");
+    $("headerStatus").classList.toggle("online", c.online);
+
+    $("messages").innerHTML = c.messages.map(bubbleHTML).join("");
+    scrollDown();
+  }
+
+  function appendBubble(msg) {
+    $("messages").insertAdjacentHTML("beforeend", bubbleHTML(msg));
+    scrollDown();
+  }
+
+  function openChat(id) {
+    activeId = id;
+    active().unread = 0;
+    renderList();
+    renderChat();
+    cancelReply();
+    if (window.innerWidth <= 720) $("app").classList.add("show-chat");
+    $("input").focus();
+  }
+
+  // ============ ИРСОЛИ ПАЁМ ВА ҶАВОБИ ХУДКОР ============
+  function autoReply(contact) {
+    setTimeout(() => {
+      if (contact.id === activeId) {
+        $("messages").insertAdjacentHTML("beforeend",
+          '<div class="msg them" id="typing"><div class="bubble"><span class="typing-dots"><span></span><span></span><span></span></span></div></div>');
+        scrollDown();
+      }
+      setTimeout(() => {
+        $("typing")?.remove();
+        // ҳамаи паёмҳои гирифташудаи ин контакт дидашуда мешаванд
+        contact.messages.forEach(m => { if (m.from === "me") { m.delivered = true; m.read = true; } });
+        contact.messages.push({ from: "them", text: REPLIES[Math.floor(Math.random() * REPLIES.length)], time: now() });
+        if (contact.id !== activeId) {
+          contact.unread++;
+        } else {
+          renderChat();
+        }
+        renderList();
+        saveChats();
+      }, 1200 + Math.random() * 1400);
+    }, 900 + Math.random() * 1200);
+  }
+
+  $("composer").addEventListener("submit", e => {
+    e.preventDefault();
+    const text = $("input").value.trim();
+    if (!text) return;
+    const c = active();
+    c.messages.push({ from: "me", text, replyTo: replyTarget, time: now(), delivered: false, read: false });
+    $("input").value = "";
+    $("sendBtn").disabled = true;
+    cancelReply();
+    appendBubble(last(c));
+    renderList();
+    saveChats();
+    autoReply(c);
+  });
+
+  $("messages").addEventListener("click", e => {
+    const btn = e.target.closest(".acts button");
+    if (!btn) return;
+    const idx = [...$("messages").querySelectorAll(".msg")].indexOf(btn.closest(".msg"));
+    const m = active().messages[idx];
+    if (!m) return;
+    if (btn.dataset.act === "reply") startReply(m);
+    if (btn.dataset.act === "del") deleteMessage(m);
+  });
+
+  // Пахши паёми овозӣ
+  let voiceAnim = null;
+
+  function stopVoiceAnim() {
+    clearInterval(voiceAnim);
+    voiceAnim = null;
+    document.querySelectorAll("#messages .voice-wave i.on").forEach(b => b.classList.remove("on"));
+    document.querySelectorAll('#messages [data-act="play"]').forEach(b => b.textContent = "▶");
+  }
+
+  $("messages").addEventListener("click", e => {
+    const play = e.target.closest('[data-act="play"]');
+    if (!play) return;
+    const audio = play.closest(".voice").querySelector("audio");
+    if (!audio) return;
+    const wave = play.closest(".voice").querySelectorAll(".voice-wave i");
+    document.querySelectorAll("#messages audio").forEach(a => { if (a !== audio) a.pause(); });
+    if (audio.paused) {
+      stopVoiceAnim();
+      audio.currentTime = 0;
+      audio.play().catch(() => {});  // autoplay policy радд кунад — бе crash
+      play.textContent = "⏸";
+      let i = 0;
+      voiceAnim = setInterval(() => {
+        if (audio.paused || audio.ended) { stopVoiceAnim(); return; }
+        wave.forEach((b, j) => b.classList.toggle("on", j === i % wave.length));
+        i++;
+      }, 120);
+      audio.onended = stopVoiceAnim;
+      audio.onpause = stopVoiceAnim;
+    } else {
+      audio.pause();
+      stopVoiceAnim();
+    }
+  });
+
+  $("input").addEventListener("input", e => { $("sendBtn").disabled = !e.target.value.trim(); });
+  $("search").addEventListener("input", () => renderList());
+  $("chatList").addEventListener("click", e => {
+    const item = e.target.closest(".chat-item");
+    if (item) openChat(item.dataset.id);
+  });
+  $("backBtn").addEventListener("click", () => $("app").classList.remove("show-chat"));
+  $("logoutBtn").addEventListener("click", logout);
+
+  // ============ ОҒОЗ ============
+  startApp();
+</script>
+</body>
+</html>
