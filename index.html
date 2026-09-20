@@ -16,6 +16,7 @@
     --gold-grad: linear-gradient(135deg, #d4af37, #b08d24);
     --border: rgba(212, 175, 55, 0.22);
     --bubble: #1c1c1c;
+    --msg-font: 14.5px;
   }
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -359,7 +360,7 @@
   }
 
   /* ---------- Гуфтугӯ ---------- */
-  .chat { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+  .chat { flex: 1; min-width: 0; display: flex; flex-direction: column; position: relative; }
   .chat-header { display: flex; align-items: center; gap: 12px; padding: 12px 18px; background: var(--panel); border-bottom: 1px solid var(--border); }
   .back-btn { display: none; background: none; border: 1px solid var(--border); color: var(--text); border-radius: 8px; width: 34px; height: 34px; cursor: pointer; }
   .chat-header-name { font-weight: 700; font-size: 16px; }
@@ -367,6 +368,92 @@
   .chat-header-status.online { color: #4ade80; }
 
   .messages { flex: 1; overflow-y: auto; padding: 20px 22px 10px; display: flex; flex-direction: column; gap: 6px; }
+  .header-actions { display: flex; gap: 6px; margin-left: auto; }
+  .header-btn {
+    width: 34px;
+    height: 34px;
+    border: 1px solid var(--border);
+    background: none;
+    color: var(--muted);
+    border-radius: 9px;
+    cursor: pointer;
+    font-size: 14px;
+  }
+  .header-btn:hover { color: var(--gold); border-color: var(--gold); }
+  .header-btn.muted { color: #ff6b6b; border-color: rgba(255, 107, 107, 0.4); }
+  .msg-highlight { outline: 2px solid var(--gold); outline-offset: 2px; border-radius: 14px; }
+
+  .pin-badge { margin-left: 5px; }
+
+  .empty-chat {
+    margin: auto;
+    text-align: center;
+    color: var(--muted);
+    font-size: 14px;
+    padding: 30px;
+  }
+  .day-divider {
+    align-self: center;
+    background: var(--panel-2);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    font-size: 11.5px;
+    padding: 3px 12px;
+    border-radius: 10px;
+    margin: 8px 0 2px;
+  }
+  .mute-mark { font-size: 11px; margin-right: 4px; }
+  .scroll-fab {
+    position: absolute;
+    right: 18px;
+    bottom: 90px;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 1px solid var(--border);
+    background: var(--panel);
+    color: var(--gold);
+    font-size: 17px;
+    cursor: pointer;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s, transform 0.2s;
+    z-index: 5;
+  }
+  .scroll-fab.show { opacity: 1; pointer-events: auto; }
+  .scroll-fab:hover { transform: translateY(-2px); border-color: var(--gold); }
+  .toast {
+    position: fixed;
+    left: 50%;
+    bottom: 26px;
+    transform: translateX(-50%) translateY(16px);
+    background: var(--panel);
+    border: 1px solid var(--gold);
+    color: var(--text);
+    padding: 10px 18px;
+    border-radius: 12px;
+    font-size: 13.5px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s, transform 0.2s;
+    z-index: 120;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%); }
+  .forward-item { display: flex; gap: 10px; align-items: center; width: 100%; padding: 9px 10px; border: none; border-radius: 10px; background: none; color: var(--text); font-family: inherit; font-size: 14px; cursor: pointer; text-align: left; }
+  .forward-item:hover { background: var(--panel-2); }
+
+  /* ---------- Мавзӯъи равшан ---------- */
+  html.light {
+    --panel: #ffffff;
+    --panel-2: #f0ede6;
+    --text: #201d15;
+    --muted: #8a8577;
+    --bubble: #ffffff;
+    --border: rgba(0, 0, 0, 0.12);
+    --gold-soft: rgba(180, 140, 20, 0.15);
+  }
+  html.light body { background: radial-gradient(ellipse at top, #fdf9ee 0%, #efe9db 65%); }
 
   .msg { display: flex; }
   .msg.them { justify-content: flex-start; }
@@ -661,8 +748,14 @@
         <div class="chat-header-name" id="headerName"></div>
         <div class="chat-header-status" id="headerStatus"></div>
       </div>
+      <div class="header-actions">
+        <button class="header-btn" id="muteBtn" title="Хомӯш кардани чат">🔔</button>
+        <button class="header-btn" id="exportBtn" title="Содирот (Export)">⬇</button>
+        <button class="header-btn" id="clearBtn" title="Тоза кардани чат">🧹</button>
+      </div>
     </div>
     <div class="messages" id="messages"></div>
+    <button class="scroll-fab" id="scrollBtn" title="Ба поён">↓</button>
     <div class="emoji-panel" id="emojiPanel"></div>
     <div class="reply-bar" id="replyBar" hidden>
       <span class="rt" id="replyText"></span>
@@ -735,6 +828,15 @@
   </div>
 </div>
 
+<div class="modal-overlay" id="forwardModal" hidden>
+  <div class="modal" role="dialog" aria-label="Пеш фиристодан">
+    <h2>ПЕШ ФИРИСТОДАН</h2>
+    <div id="forwardList"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
 <div class="modal-overlay" id="settingsModal" hidden>
   <div class="modal" role="dialog" aria-label="Танзимот">
     <h2>ТАНЗИМОТ</h2>
@@ -749,6 +851,7 @@
     </div>
     <div class="setting-row"><span>Заминаи чат</span><span class="color-row" id="wpRow"></span></div>
     <div class="profile-label" style="margin-top: 14px">ХАБАРНОМӢ</div>
+    <label class="setting-row switch-row"><span>Мавзӯъи равшан</span><input type="checkbox" id="themeToggle" class="switch"><span class="slider"></span></label>
     <label class="setting-row switch-row"><span>Садои паём</span><input type="checkbox" id="soundToggle" class="switch"><span class="slider"></span></label>
     <label class="setting-row switch-row"><span>Ҷавоби корбари дуюм</span><input type="checkbox" id="autoReplyToggle" class="switch"><span class="slider"></span></label>
     <div class="profile-label" style="margin-top: 14px">ҲИФЗ</div>
@@ -818,6 +921,8 @@
     const acts = m.deleted ? "" : `
       <span class="acts">
         <button data-act="reply" title="Ҷавоб">↩</button>
+        ${m.text ? `<button data-act="copy" title="Нусха">📋</button>` : ""}
+        <button data-act="fwd" title="Пеш фиристодан">⏩</button>
         ${mine ? `<button data-act="del" title="Нест кардан">🗑</button>` : ""}
       </span>`;
     const ticks = mine ? `<span class="tick${m.read ? " read" : ""}">${m.read ? "✓✓" : m.delivered ? "✓✓" : "✓"}</span>` : "";
@@ -870,7 +975,7 @@
     const reader = new FileReader();
     reader.onload = () => {
       const c = active();
-      c.messages.push({ from: "me", img: reader.result, text: "", time: now(), delivered: false, read: false });
+      c.messages.push({ from: "me", img: reader.result, text: "", time: now(), date: todayISO(), delivered: false, read: false });
       appendBubble(last(c));
       renderList();
       saveChats();
@@ -882,11 +987,16 @@
 
   $("cancelReply").addEventListener("click", cancelReply);
 
-  // Escape: як қабат дар як бор — танзимот → профил → панели эмодзи → ҷавоб
+  // Escape: як қабат дар як бор — танзимот → пешфиристодан → профил → панели эмодзи → ҷавоб
   document.addEventListener("keydown", e => {
     if (e.key !== "Escape") return;
     if (!$("settingsModal").hidden) {
       $("settingsModal").hidden = true;
+      return;
+    }
+    if (!$("forwardModal").hidden) {
+      $("forwardModal").hidden = true;
+      forwardMsg = null;
       return;
     }
     if (!$("profileModal").hidden) {
@@ -941,7 +1051,7 @@
         const reader = new FileReader();
         reader.onload = () => {
           const c = active();
-          c.messages.push({ from: "me", audio: reader.result, dur: seconds, text: "", time: now(), delivered: false, read: false });
+          c.messages.push({ from: "me", audio: reader.result, dur: seconds, text: "", time: now(), date: todayISO(), delivered: false, read: false });
           appendBubble(last(c));
           renderList();
           saveChats();
@@ -1017,7 +1127,8 @@
     applySettings(loadSettings());
     const saved = loadChats();
     // аз намунаи тоза нусха мегирем, то демо-маълумот дахолатпазир нашаванд
-    CONTACTS = (saved || DEMO_CONTACTS).map(c => ({ ...c, messages: c.messages.map(m => ({ ...m })) }));
+    const flags = loadFlags();
+    CONTACTS = (saved || DEMO_CONTACTS).map(c => ({ ...c, ...flags[c.id], messages: c.messages.map(m => ({ ...m })) }));
     activeId = CONTACTS[0].id;
     renderList();
     renderChat();
@@ -1138,6 +1249,16 @@
   $("profilePhotoInput").addEventListener("change", e => {
     const file = e.target.files[0];
     if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      $("profileErr").textContent = "Танҳо сурат интихоб кунед.";
+      e.target.value = "";
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      $("profileErr").textContent = "Сурат аз 5 МБ калон аст.";
+      e.target.value = "";
+      return;
+    }
     readProfilePhoto(file, data => {
       if (data) {
         profilePhoto = data;
@@ -1195,6 +1316,7 @@
     document.documentElement.style.setProperty("--gold", a[0]);
     document.documentElement.style.setProperty("--gold-grad", `linear-gradient(135deg, ${a[0]}, ${a[1]})`);
     document.documentElement.style.setProperty("--msg-font", (s.font || 14.5) + "px");
+    document.documentElement.classList.toggle("light", s.theme === "light");
     $("messages").className = "messages " + (s.wallpaper || "");
   }
 
@@ -1240,6 +1362,7 @@
     [...$("wpRow").children].forEach(x => x.classList.toggle("selected", x.dataset.w === b.dataset.w));
   });
   $("fontSel").addEventListener("change", e => updateSetting("font", Number(e.target.value)));
+  $("themeToggle").addEventListener("change", e => updateSetting("theme", e.target.checked ? "light" : "dark"));
   $("soundToggle").addEventListener("change", e => updateSetting("sound", e.target.checked));
   $("autoReplyToggle").addEventListener("change", e => updateSetting("autoReply", e.target.checked));
 
@@ -1261,6 +1384,7 @@
     [...$("accentRow").children].forEach(b => b.classList.toggle("selected", b.dataset.a === (s.accent || "gold")));
     [...$("wpRow").children].forEach(b => b.classList.toggle("selected", b.dataset.w === (s.wallpaper || "")));
     $("fontSel").value = String(s.font || 14.5);
+    $("themeToggle").checked = s.theme === "light";
     $("soundToggle").checked = s.sound !== false;
     $("autoReplyToggle").checked = s.autoReply !== false;
     pinEditing = false;
@@ -1410,8 +1534,9 @@
       const saved = JSON.parse(localStorage.getItem(CHATS_KEY));
       if (!saved || typeof saved !== "object") return null;
       return DEMO_CONTACTS.map(c => {
-        const msgs = Array.isArray(saved[c.id]) ? saved[c.id].filter(validMsg) : null;
-        return msgs && msgs.length ? { ...c, messages: msgs } : c;
+        // массиви холӣ (чат тоза кардашуда) ҳамчун холӣ нигоҳ дошта мешавад
+        if (!Array.isArray(saved[c.id])) return c;
+        return { ...c, messages: saved[c.id].filter(validMsg) };
       });
     } catch { return null; }
   }
@@ -1424,6 +1549,19 @@
     } catch {
       // quota пур шуд (масалан, суратҳои калон) — ин helo бе хато мегузарад
     }
+  }
+
+  // ҳолатҳои чат (мут, санҷиш) — алоҳида аз паёмҳо
+  const FLAGS_KEY = "tjkchat_chatflags";
+  const loadFlags = () => {
+    try { return JSON.parse(localStorage.getItem(FLAGS_KEY)) || {}; } catch { return {}; }
+  };
+  function saveFlags() {
+    try {
+      const data = {};
+      CONTACTS.forEach(c => { if (c.muted || c.pinned) data[c.id] = { muted: !!c.muted, pinned: !!c.pinned }; });
+      localStorage.setItem(FLAGS_KEY, JSON.stringify(data));
+    } catch {}
   }
 
   const REPLIES = [
@@ -1449,28 +1587,70 @@
   const active = () => CONTACTS.find(c => c.id === activeId);
   const last = c => c.messages[c.messages.length - 1];
   const scrollDown = () => { const m = $("messages"); m.scrollTop = m.scrollHeight; };
+  let clearArmed = null;
+  let forwardMsg = null;
+  let toastTimer = null;
+
+  const todayISO = () => new Date().toISOString().slice(0, 10);
+
+  function showToast(msg) {
+    const t = $("toast");
+    t.textContent = msg;
+    t.classList.add("show");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => t.classList.remove("show"), 2200);
+  }
+
+  // ============ ПАЁМНАВИС (draft) ============
+  const DRAFTS_KEY = "tjkchat_drafts";
+  const loadDrafts = () => {
+    try { return JSON.parse(localStorage.getItem(DRAFTS_KEY)) || {}; } catch { return {}; }
+  };
+  const saveDrafts = d => {
+    try { localStorage.setItem(DRAFTS_KEY, JSON.stringify(d)); } catch {}
+  };
 
   // ============ РАСМКУНӢ ============
+  const chatPreview = c => {
+    const m = last(c);
+    if (!m) return "Паём нест";
+    if (m.deleted) return "🚫 паём нест карда шуд";
+    if (m.audio) return "🎙 Паёми овозӣ";
+    if (m.img && !m.text) return "📷 Сурат";
+    return m.text || "";
+  };
+
   function renderList() {
     const f = $("search").value.toLowerCase();
+    const matches = c =>
+      !f || c.name.toLowerCase().includes(f) || c.messages.some(m => m.text && m.text.toLowerCase().includes(f));
+    const pinned = loadSettings().pinned || [];
     $("chatList").innerHTML = CONTACTS
-      .filter(c => c.name.toLowerCase().includes(f))
+      .filter(matches)
+      .sort((a, b) => (pinned.includes(b.id) ? 1 : 0) - (pinned.includes(a.id) ? 1 : 0))
       .map(c => `
         <button class="chat-item${c.id === activeId ? " active" : ""}" data-id="${c.id}">
           <div class="avatar" style="background:${c.color}">${c.initials}<span class="presence${c.online ? "" : " off"}"></span></div>
           <div class="chat-item-main">
             <div class="chat-item-top">
-              <span class="chat-item-name">${c.name}</span>
-              <span class="chat-item-time">${last(c).time}</span>
+              <span class="chat-item-name">${c.name}${pinned.includes(c.id) ? '<span class="pin-badge">📌</span>' : ""}</span>
+              <span class="chat-item-time">${last(c) ? last(c).time : ""}</span>
             </div>
             <div class="chat-item-bottom">
-              <span class="chat-item-preview">${esc(last(c).text)}</span>
+              <span class="chat-item-preview">${esc(chatPreview(c))}</span>
+              ${c.muted ? '<span class="mute-mark">🔕</span>' : ""}
               ${c.unread ? `<span class="badge">${c.unread}</span>` : ""}
             </div>
           </div>
         </button>`)
       .join("");
+    const unreadTotal = CONTACTS.reduce((n, c) => n + (c.muted ? 0 : c.unread), 0);
+    document.title = unreadTotal ? `TJK CHAT (${unreadTotal})` : "TJK CHAT — Мессенҷер";
   }
+
+  const dateLabel = d => (d === new Date().toISOString().slice(0, 10) ? "Бугун"
+    : d === new Date(Date.now() - 864e5).toISOString().slice(0, 10) ? "Дирӯз"
+    : d.split("-").reverse().join("."));
 
   function renderChat() {
     const c = active();
@@ -1479,8 +1659,22 @@
     $("headerName").textContent = c.name;
     $("headerStatus").textContent = c.online ? "● Дар интернет" : "● " + (c.lastSeen || "Илғоқ нест");
     $("headerStatus").classList.toggle("online", c.online);
+    $("muteBtn").textContent = c.muted ? "🔕" : "🔔";
+    $("muteBtn").classList.toggle("muted", !!c.muted);
+    $("clearBtn").textContent = "🧹";
+    clearArmed = null;
 
-    $("messages").innerHTML = c.messages.map(bubbleHTML).join("");
+    let prevDate = null;
+    $("messages").innerHTML = c.messages.length
+      ? c.messages.map(m => {
+        let divider = "";
+        if (m.date && m.date !== prevDate) {
+          prevDate = m.date;
+          divider = `<div class="day-divider">${dateLabel(m.date)}</div>`;
+        }
+        return divider + bubbleHTML(m);
+      }).join("")
+      : '<div class="empty-chat">Паёмҳо дар ин чат нест — аввалин паёмро нависед 👋</div>';
     scrollDown();
   }
 
@@ -1495,6 +1689,8 @@
     renderList();
     renderChat();
     cancelReply();
+    $("input").value = loadDrafts()[id] || "";
+    $("sendBtn").disabled = !$("input").value.trim();
     if (window.innerWidth <= 720) $("app").classList.add("show-chat");
     $("input").focus();
   }
@@ -1558,7 +1754,10 @@
     const text = $("input").value.trim();
     if (!text) return;
     const c = active();
-    c.messages.push({ from: "me", text, replyTo: replyTarget, time: now(), delivered: false, read: false });
+    c.messages.push({ from: "me", text, replyTo: replyTarget, time: now(), date: todayISO(), delivered: false, read: false });
+    const drafts = loadDrafts();
+    delete drafts[c.id];
+    saveDrafts(drafts);
     $("input").value = "";
     $("sendBtn").disabled = true;
     cancelReply();
@@ -1569,6 +1768,13 @@
     peerReply(c);
   });
 
+  $("input").addEventListener("input", e => {
+    const drafts = loadDrafts();
+    if (e.target.value.trim()) drafts[activeId] = e.target.value;
+    else delete drafts[activeId];
+    saveDrafts(drafts);
+  });
+
   $("messages").addEventListener("click", e => {
     const btn = e.target.closest(".acts button");
     if (!btn) return;
@@ -1577,6 +1783,23 @@
     if (!m) return;
     if (btn.dataset.act === "reply") startReply(m);
     if (btn.dataset.act === "del") deleteMessage(m);
+    if (btn.dataset.act === "copy") {
+      (navigator.clipboard?.writeText(m.text) || Promise.reject())
+        .then(() => showToast("Нусха гирифт шуд 📋"))
+        .catch(() => showToast("Нусха гирифт нашуд"));
+    }
+    if (btn.dataset.act === "fwd") {
+      forwardMsg = m;
+      $("forwardList").innerHTML = CONTACTS
+        .filter(c => c.id !== activeId)
+        .map(c => `
+          <button class="forward-item" data-id="${c.id}">
+            <div class="avatar" style="background:${c.color}">${c.initials}</div>
+            <span>${esc(c.name)}</span>
+          </button>`)
+        .join("") || '<div class="empty-chat">Чати дигар нест</div>';
+      $("forwardModal").hidden = false;
+    }
   });
 
   // Пахши паёми овозӣ
@@ -1622,6 +1845,79 @@
     if (item) openChat(item.dataset.id);
   });
   $("backBtn").addEventListener("click", () => $("app").classList.remove("show-chat"));
+
+  // ============ АСОБИ ЧАТ: мут, содирот, тозакунӣ ============
+  $("muteBtn").addEventListener("click", () => {
+    const c = active();
+    c.muted = !c.muted;
+    saveFlags();
+    renderList();
+    renderChat();
+    showToast(c.muted ? "Чат хомӯш шуд 🔕" : "Чат фаъол шуд 🔔");
+  });
+
+  $("exportBtn").addEventListener("click", () => {
+    const c = active();
+    const blob = new Blob([JSON.stringify({ chat: c.name, messages: c.messages }, null, 2)], { type: "application/json" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = `tjkchat-${c.id}.json`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+    showToast("Экспорт шуд ⬇");
+  });
+
+  $("clearBtn").addEventListener("click", () => {
+    if (clearArmed) {
+      clearTimeout(clearArmed);
+      clearArmed = null;
+      const c = active();
+      c.messages = [];
+      const drafts = loadDrafts();
+      delete drafts[c.id];
+      saveDrafts(drafts);
+      renderChat();
+      renderList();
+      saveChats();
+      showToast("Чат тоза шуд 🧹");
+    } else {
+      $("clearBtn").textContent = "Тасдиқ?";
+      clearArmed = setTimeout(() => {
+        clearArmed = null;
+        $("clearBtn").textContent = "🧹";
+      }, 2500);
+    }
+  });
+
+  // ============ ПЕШ ФИРИСТОДАН ============
+  $("forwardList").addEventListener("click", e => {
+    const item = e.target.closest(".forward-item");
+    if (!item || !forwardMsg) return;
+    const target = CONTACTS.find(c => c.id === item.dataset.id);
+    if (!target) return;
+    target.messages.push({
+      from: "me",
+      text: forwardMsg.text || "",
+      img: forwardMsg.img || null,
+      time: now(),
+      date: todayISO(),
+      delivered: false,
+      read: false
+    });
+    forwardMsg = null;
+    $("forwardModal").hidden = true;
+    target.unread++;
+    renderList();
+    saveChats();
+    showToast(`Пеш ба «${target.name}» фиристода шуд ⏩`);
+  });
+
+  // ============ ТУГМАИ БА ПОЁН ============
+  $("messages").addEventListener("scroll", () => {
+    const m = $("messages");
+    $("scrollBtn").classList.toggle("show", m.scrollHeight - m.scrollTop - m.clientHeight > 300);
+  });
+  $("scrollBtn").addEventListener("click", scrollDown);
   $("logoutBtn").addEventListener("click", logout);
 
   // ============ ОҒОЗ ============
