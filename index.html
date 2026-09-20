@@ -624,6 +624,16 @@
 
   $("cancelReply").addEventListener("click", cancelReply);
 
+  // Escape: як қабат дар як бор — аввал панели эмодзи, баъд ҷавоб
+  document.addEventListener("keydown", e => {
+    if (e.key !== "Escape") return;
+    if ($("emojiPanel").classList.contains("show")) {
+      $("emojiPanel").classList.remove("show");
+      return;
+    }
+    if (!$("replyBar").hidden) cancelReply();
+  });
+
   // ============ ПАЁМИ ОВОЗӢ (MediaRecorder) ============
   const REC_MAX_MS = 120000;  // ҳадди аксар 2 дақиқа
   let rec = null;             // { recorder, stream, chunks, startedAt, timer }

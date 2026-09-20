@@ -86,6 +86,28 @@ describe("TJK CHAT — расона ва панели эмодзи", () => {
     cy.get("#messages .quote").should("not.exist");
   });
 
+  it("Escape панели эмодзи-ро мепӯшад, баъд ҷавобро бекор мекунад (як қабат дар як бор)", () => {
+    cy.contains(".chat-item", "Далер Назаров").click();
+
+    cy.get('#messages .msg [data-act="reply"]').last().click();
+    cy.get("#replyBar").should("be.visible");
+    cy.get("#emojiBtn").click();
+    cy.get("#emojiPanel").should("be.visible");
+
+    // Escape №1 — танҳо панели эмодзи
+    cy.get("body").type("{esc}");
+    cy.get("#emojiPanel").should("not.be.visible");
+    cy.get("#replyBar").should("be.visible");
+
+    // Escape №2 — ҷавоб бекор мешавад
+    cy.get("body").type("{esc}");
+    cy.get("#replyBar").should("not.be.visible");
+
+    cy.get("#input").type("бе иқтибос");
+    cy.get("#composer").submit();
+    cy.get("#messages .quote").should("not.exist");
+  });
+
   it("гузариш ба чати дигар ҷавобро бекор мекунад", () => {
     cy.contains(".chat-item", "Далер Назаров").click();
     cy.get('#messages .msg [data-act="reply"]').last().click();
