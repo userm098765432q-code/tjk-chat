@@ -289,6 +289,75 @@
   .profile-cancel { background: none; border: 1px solid var(--border); color: var(--text); }
   .profile-cancel:hover { border-color: var(--gold); }
 
+  /* ---------- Танзимот ва қулф ---------- */
+  .sidebar-header-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+  .settings-btn {
+    border: 1px solid var(--border);
+    background: none;
+    color: var(--muted);
+    border-radius: 8px;
+    padding: 6px 9px;
+    cursor: pointer;
+    font-size: 15px;
+  }
+  .settings-btn:hover { color: var(--gold); border-color: var(--gold); }
+  .setting-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 0; border-bottom: 1px solid rgba(212, 175, 55, 0.08); }
+  .setting-row > span:first-child { font-size: 14px; }
+  .setting-state { font-size: 12.5px; color: var(--gold); }
+  .setting-select {
+    padding: 6px 10px;
+    border-radius: 8px;
+    background: var(--panel-2);
+    color: var(--text);
+    border: 1px solid var(--border);
+    font-family: inherit;
+    font-size: 13px;
+  }
+  .switch-row { cursor: pointer; }
+  .switch { display: none; }
+  .slider { width: 40px; height: 22px; border-radius: 11px; background: var(--panel-2); border: 1px solid var(--border); position: relative; transition: 0.2s; flex-shrink: 0; }
+  .slider::after { content: ""; position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; border-radius: 50%; background: var(--muted); transition: 0.2s; }
+  .switch:checked + .slider { background: var(--gold-soft); border-color: var(--gold); }
+  .switch:checked + .slider::after { left: 20px; background: var(--gold); }
+  .wp-swatch { width: 30px; height: 30px; border-radius: 8px; border: 2px solid transparent; cursor: pointer; background: var(--bg); }
+  .wp-swatch.selected, .color-swatch.selected { border-color: var(--gold); box-shadow: 0 0 0 2px var(--gold-soft); }
+  .wp-swatch.wp-dots { background-image: radial-gradient(rgba(212, 175, 55, 0.25) 1px, transparent 1px); background-size: 8px 8px; }
+  .wp-swatch.wp-gold { background-image: radial-gradient(ellipse at top, rgba(212, 175, 55, 0.35), transparent 70%); }
+  .wp-swatch.wp-night { background-image: linear-gradient(180deg, rgba(79, 140, 255, 0.25), transparent 70%); }
+  .messages.wp-dots { background-image: radial-gradient(rgba(212, 175, 55, 0.08) 1px, transparent 1px); background-size: 18px 18px; }
+  .messages.wp-gold { background-image: radial-gradient(ellipse at top, rgba(212, 175, 55, 0.1), transparent 60%); }
+  .messages.wp-night { background-image: linear-gradient(180deg, rgba(79, 140, 255, 0.07), transparent 50%); }
+  .social-link {
+    font-size: 10px;
+    color: var(--gold);
+    text-decoration: none;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 1px 5px;
+    margin-left: 5px;
+  }
+  .social-link:hover { border-color: var(--gold); }
+  .lock-overlay { position: fixed; inset: 0; z-index: 100; display: flex; align-items: center; justify-content: center; background: rgba(0, 0, 0, 0.92); }
+  .lock-overlay[hidden] { display: none; }
+  .lock-box { text-align: center; }
+  .lock-box .avatar { width: 72px; height: 72px; min-width: 72px; margin: 0 auto 10px; font-size: 24px; }
+  .lock-name { font-size: 17px; font-weight: 600; margin-bottom: 14px; }
+  .lock-dots { display: flex; gap: 10px; justify-content: center; margin-bottom: 8px; }
+  .lock-dots span { width: 12px; height: 12px; border-radius: 50%; border: 1px solid var(--border); }
+  .lock-dots span.on { background: var(--gold); border-color: var(--gold); }
+  .lock-err { color: #ff6b6b; font-size: 12.5px; min-height: 18px; margin-bottom: 6px; }
+  .lock-pad { display: grid; grid-template-columns: repeat(3, 72px); gap: 10px; justify-content: center; }
+  .lock-pad button { height: 60px; border-radius: 14px; border: 1px solid var(--border); background: var(--panel); color: var(--text); font-size: 22px; font-family: inherit; cursor: pointer; }
+  .lock-pad button:hover { border-color: var(--gold); }
+  .lock-pad button:active { transform: scale(0.96); }
+  .lock-logout { margin-top: 14px; background: none; border: none; color: var(--muted); font-size: 12.5px; cursor: pointer; text-decoration: underline; }
+  .lock-box.shake { animation: shake 0.3s; }
+  @keyframes shake {
+    0%, 100% { transform: none; }
+    25% { transform: translateX(-8px); }
+    75% { transform: translateX(8px); }
+  }
+
   /* ---------- Гуфтугӯ ---------- */
   .chat { flex: 1; min-width: 0; display: flex; flex-direction: column; }
   .chat-header { display: flex; align-items: center; gap: 12px; padding: 12px 18px; background: var(--panel); border-bottom: 1px solid var(--border); }
@@ -307,7 +376,7 @@
     max-width: 68%;
     padding: 9px 13px 6px;
     border-radius: 14px;
-    font-size: 14.5px;
+    font-size: var(--msg-font, 14.5px);
     line-height: 1.45;
     word-wrap: break-word;
     animation: pop 0.18s ease-out;
@@ -564,7 +633,10 @@
 
   <aside class="sidebar">
     <div class="sidebar-header">
-      <div class="brand">TJK <span>CHAT</span></div>
+      <div class="sidebar-header-row">
+        <div class="brand">TJK <span>CHAT</span></div>
+        <button class="settings-btn" id="settingsBtn" title="Танзимот">⚙</button>
+      </div>
       <input class="search" id="search" type="text" placeholder="Ҷустуҷӯи гуфтугӯ...">
     </div>
     <div class="chat-list" id="chatList"></div>
@@ -573,9 +645,10 @@
         <div class="avatar" id="meAvatar">Ш</div>
         <div class="me-info">
           <div class="me-name" id="meName">Шумо</div>
-          <div class="me-status">● Дар интернет</div>
+          <div class="me-status">● Дар интернет<span id="meSocial"></span></div>
         </div>
       </div>
+      <button class="logout-btn" id="lockBtn" title="Қулф кардан">🔒</button>
       <button class="logout-btn" id="logoutBtn" title="Баромадан">⎋</button>
     </div>
   </aside>
@@ -644,12 +717,74 @@
       <input type="email" id="pEmail" placeholder="misol@tjkchat.tj">
       <span class="err" id="err-pEmail"></span>
     </div>
+    <div class="profile-label">ИҶТИМОӢ</div>
+    <div class="field">
+      <label for="pInstagram">Instagram (номи корбар)</label>
+      <input type="text" id="pInstagram" placeholder="sino.tj">
+    </div>
+    <div class="field">
+      <label for="pTelegram">Telegram (номи корбар)</label>
+      <input type="text" id="pTelegram" placeholder="sino_tj">
+    </div>
     <div class="profile-err" id="profileErr"></div>
     <div class="modal-actions">
       <button class="profile-cancel" id="profileCancel" type="button">БЕКОР</button>
       <button class="profile-save" id="profileSave" type="button">ЗАХИРА</button>
     </div>
     <input type="file" id="profilePhotoInput" accept="image/*" hidden>
+  </div>
+</div>
+
+<div class="modal-overlay" id="settingsModal" hidden>
+  <div class="modal" role="dialog" aria-label="Танзимот">
+    <h2>ТАНЗИМОТ</h2>
+    <div class="profile-label">ЗУҲУР</div>
+    <div class="setting-row"><span>Ранги асосӣ</span><span class="color-row" id="accentRow"></span></div>
+    <div class="setting-row"><span>Ҳарфи паёмҳо</span>
+      <select id="fontSel" class="setting-select">
+        <option value="13.5">Хурд</option>
+        <option value="14.5">Миёна</option>
+        <option value="16">Калон</option>
+      </select>
+    </div>
+    <div class="setting-row"><span>Заминаи чат</span><span class="color-row" id="wpRow"></span></div>
+    <div class="profile-label" style="margin-top: 14px">ХАБАРНОМӢ</div>
+    <label class="setting-row switch-row"><span>Садои паём</span><input type="checkbox" id="soundToggle" class="switch"><span class="slider"></span></label>
+    <label class="setting-row switch-row"><span>Ҷавоби корбари дуюм</span><input type="checkbox" id="autoReplyToggle" class="switch"><span class="slider"></span></label>
+    <div class="profile-label" style="margin-top: 14px">ҲИФЗ</div>
+    <div class="setting-row"><span>Қулфи PIN</span><span class="setting-state" id="pinState">Хомӯш</span></div>
+    <div id="pinActions">
+      <div class="modal-actions">
+        <button class="profile-cancel" id="pinChangeBtn" type="button">ГУЗОШТАНИ PIN</button>
+        <button class="profile-save" id="pinOffBtn" type="button" hidden>ХОМӮШ КАРДАН</button>
+      </div>
+    </div>
+    <div id="pinForm" hidden>
+      <div class="field">
+        <label for="pinNew">PIN-и нав (4 рақам)</label>
+        <input type="password" id="pinNew" maxlength="4" inputmode="numeric" placeholder="****">
+      </div>
+      <div class="field">
+        <label for="pinConfirm">Такрори PIN</label>
+        <input type="password" id="pinConfirm" maxlength="4" inputmode="numeric" placeholder="****">
+      </div>
+      <div class="profile-err" id="pinErr"></div>
+      <div class="modal-actions">
+        <button class="profile-cancel" id="pinCancelBtn" type="button">БЕКОР</button>
+        <button class="profile-save" id="pinSetBtn" type="button">ГУЗОШТАН</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="lock-overlay" id="lockScreen" hidden>
+  <div class="lock-box" id="lockBox">
+    <div class="avatar" id="lockAvatar"></div>
+    <div class="lock-name" id="lockName"></div>
+    <div class="lock-dots" id="lockDots"><span></span><span></span><span></span><span></span></div>
+    <div class="lock-err" id="lockErr"></div>
+    <div class="lock-pad" id="lockPad"></div>
+    <button class="lock-logout" id="lockLogout" type="button">Баромадан</button>
   </div>
 </div>
 
@@ -747,9 +882,13 @@
 
   $("cancelReply").addEventListener("click", cancelReply);
 
-  // Escape: як қабат дар як бор — модали профил → панели эмодзи → ҷавоб
+  // Escape: як қабат дар як бор — танзимот → профил → панели эмодзи → ҷавоб
   document.addEventListener("keydown", e => {
     if (e.key !== "Escape") return;
+    if (!$("settingsModal").hidden) {
+      $("settingsModal").hidden = true;
+      return;
+    }
     if (!$("profileModal").hidden) {
       $("profileModal").hidden = true;
       return;
@@ -875,12 +1014,14 @@
     $("authScreen").classList.add("hidden");
     $("app").style.display = "";
     applyProfile(u);
+    applySettings(loadSettings());
     const saved = loadChats();
     // аз намунаи тоза нусха мегирем, то демо-маълумот дахолатпазир нашаванд
     CONTACTS = (saved || DEMO_CONTACTS).map(c => ({ ...c, messages: c.messages.map(m => ({ ...m })) }));
     activeId = CONTACTS[0].id;
     renderList();
     renderChat();
+    if (loadSettings().pin) showLock();
   }
 
   // ============ ПРОФИЛ ============
@@ -912,6 +1053,13 @@
   function applyProfile(u) {
     $("meName").textContent = u.firstName + " " + u.lastName;
     avatarContent(u, $("meAvatar"));
+    renderSocial(u);
+  }
+
+  function renderSocial(u) {
+    $("meSocial").innerHTML =
+      (u.ig ? `<a class="social-link" href="https://instagram.com/${esc(u.ig)}" target="_blank" rel="noopener" title="Instagram">IG</a>` : "") +
+      (u.tg ? `<a class="social-link" href="https://t.me/${esc(u.tg)}" target="_blank" rel="noopener" title="Telegram">TG</a>` : "");
   }
 
   let profileColor = null;
@@ -937,6 +1085,8 @@
     });
     profilePhoto = u.avatar || null;
     profileColor = u.avatarColor || AVATAR_COLORS[0];
+    $("pInstagram").value = u.ig || "";
+    $("pTelegram").value = u.tg || "";
     $("profileErr").textContent = "";
     renderProfilePreview();
     $("profileModal").hidden = false;
@@ -1011,6 +1161,8 @@
     FIELDS.forEach(f => u[f] = $(pFieldId(f)).value.trim());
     u.avatarColor = profileColor;
     if (profilePhoto) u.avatar = profilePhoto; else delete u.avatar;
+    u.ig = $("pInstagram").value.trim();
+    u.tg = $("pTelegram").value.trim();
     try {
       localStorage.setItem(AUTH_KEY, JSON.stringify(u));
     } catch {
@@ -1019,6 +1171,182 @@
     }
     $("profileModal").hidden = true;
     applyProfile(u);
+  });
+
+  // ============ ТАНЗИМОТ ============
+  const SETTINGS_KEY = "tjkchat_settings";
+  const loadSettings = () => {
+    try { return JSON.parse(localStorage.getItem(SETTINGS_KEY)) || {}; } catch { return {}; }
+  };
+  const persistSettings = s => {
+    try { localStorage.setItem(SETTINGS_KEY, JSON.stringify(s)); } catch {}
+  };
+  const ACCENTS = {
+    gold: ["#d4af37", "#b08d24"],
+    blue: ["#4f8cff", "#2563eb"],
+    green: ["#10b981", "#059669"],
+    purple: ["#a855f7", "#7c3aed"],
+    red: ["#ef4444", "#b91c1c"]
+  };
+  const WALLPAPERS = [["", "Заминӣ"], ["wp-dots", "Нуқта"], ["wp-gold", "Тиллоӣ"], ["wp-night", "Шаб"]];
+
+  function applySettings(s) {
+    const a = ACCENTS[s.accent] || ACCENTS.gold;
+    document.documentElement.style.setProperty("--gold", a[0]);
+    document.documentElement.style.setProperty("--gold-grad", `linear-gradient(135deg, ${a[0]}, ${a[1]})`);
+    document.documentElement.style.setProperty("--msg-font", (s.font || 14.5) + "px");
+    $("messages").className = "messages " + (s.wallpaper || "");
+  }
+
+  let audioCtx = null;
+  function beep(freq) {
+    if (loadSettings().sound === false) return;
+    try {
+      audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+      const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+      o.frequency.value = freq;
+      o.connect(g);
+      g.connect(audioCtx.destination);
+      g.gain.setValueAtTime(0.06, audioCtx.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.15);
+      o.start();
+      o.stop(audioCtx.currentTime + 0.15);
+    } catch {}
+  }
+
+  function updateSetting(key, value) {
+    const s = loadSettings();
+    s[key] = value;
+    persistSettings(s);
+    applySettings(s);
+  }
+
+  $("accentRow").innerHTML = Object.entries(ACCENTS)
+    .map(([k, [a, b]]) => `<button type="button" class="color-swatch" data-a="${k}" style="background:linear-gradient(135deg, ${a}, ${b})" title="${k}"></button>`)
+    .join("");
+  $("accentRow").addEventListener("click", e => {
+    const b = e.target.closest("[data-a]");
+    if (!b) return;
+    updateSetting("accent", b.dataset.a);
+    [...$("accentRow").children].forEach(x => x.classList.toggle("selected", x.dataset.a === b.dataset.a));
+  });
+  $("wpRow").innerHTML = WALLPAPERS
+    .map(([c, t]) => `<button type="button" class="wp-swatch ${c}" data-w="${c}" title="${t}"></button>`)
+    .join("");
+  $("wpRow").addEventListener("click", e => {
+    const b = e.target.closest("[data-w]");
+    if (!b) return;
+    updateSetting("wallpaper", b.dataset.w);
+    [...$("wpRow").children].forEach(x => x.classList.toggle("selected", x.dataset.w === b.dataset.w));
+  });
+  $("fontSel").addEventListener("change", e => updateSetting("font", Number(e.target.value)));
+  $("soundToggle").addEventListener("change", e => updateSetting("sound", e.target.checked));
+  $("autoReplyToggle").addEventListener("change", e => updateSetting("autoReply", e.target.checked));
+
+  let pinEditing = false;
+  function refreshPinUI() {
+    const has = !!loadSettings().pin;
+    $("pinState").textContent = has ? "Фаъол" : "Хомӯш";
+    $("pinChangeBtn").textContent = has ? "ИВЗИ PIN" : "ГУЗОШТАНИ PIN";
+    $("pinOffBtn").hidden = !has;
+    $("pinForm").hidden = !pinEditing;
+    $("pinErr").textContent = "";
+    $("pinNew").value = "";
+    $("pinConfirm").value = "";
+  }
+
+  function openSettings() {
+    $("profileModal").hidden = true;
+    const s = loadSettings();
+    [...$("accentRow").children].forEach(b => b.classList.toggle("selected", b.dataset.a === (s.accent || "gold")));
+    [...$("wpRow").children].forEach(b => b.classList.toggle("selected", b.dataset.w === (s.wallpaper || "")));
+    $("fontSel").value = String(s.font || 14.5);
+    $("soundToggle").checked = s.sound !== false;
+    $("autoReplyToggle").checked = s.autoReply !== false;
+    pinEditing = false;
+    refreshPinUI();
+    $("settingsModal").hidden = false;
+  }
+
+  $("settingsBtn").addEventListener("click", openSettings);
+  $("pinChangeBtn").addEventListener("click", () => { pinEditing = true; refreshPinUI(); });
+  $("pinCancelBtn").addEventListener("click", () => { pinEditing = false; refreshPinUI(); });
+  $("pinSetBtn").addEventListener("click", () => {
+    const a = $("pinNew").value, b = $("pinConfirm").value;
+    if (!/^\d{4}$/.test(a)) { $("pinErr").textContent = "PIN бояд 4 рақам бошад."; return; }
+    if (a !== b) { $("pinErr").textContent = "PIN-ҳо мувофиқ нестанд."; return; }
+    const s = loadSettings();
+    s.pin = hashPin(a);
+    persistSettings(s);
+    pinEditing = false;
+    refreshPinUI();
+  });
+  $("pinOffBtn").addEventListener("click", () => {
+    const s = loadSettings();
+    delete s.pin;
+    persistSettings(s);
+    refreshPinUI();
+  });
+
+  // ============ ҚУЛФИ PIN ============
+  const hashPin = p => {
+    let h = 5381;
+    for (const c of p) h = ((h * 33) ^ c.charCodeAt(0)) >>> 0;
+    return h.toString(36);
+  };
+  let pinEntry = "";
+
+  function showLock() {
+    const u = loadUser();
+    if (!u) return;
+    pinEntry = "";
+    $("lockErr").textContent = "";
+    updateLockDots();
+    avatarContent(u, $("lockAvatar"));
+    $("lockName").textContent = u.firstName + " " + u.lastName;
+    $("lockScreen").hidden = false;
+  }
+
+  function updateLockDots() {
+    [...$("lockDots").children].forEach((d, i) => d.classList.toggle("on", i < pinEntry.length));
+  }
+
+  function tryUnlock() {
+    if (pinEntry.length < 4) return;
+    if (hashPin(pinEntry) === loadSettings().pin) {
+      $("lockScreen").hidden = true;
+      pinEntry = "";
+      beep(880);
+    } else {
+      $("lockErr").textContent = "PIN нодуруст аст";
+      $("lockBox").classList.remove("shake");
+      void $("lockBox").offsetWidth;
+      $("lockBox").classList.add("shake");
+      pinEntry = "";
+      updateLockDots();
+    }
+  }
+
+  $("lockPad").innerHTML = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "⌫", "0", "✓"]
+    .map(k => `<button type="button" data-k="${k}">${k}</button>`)
+    .join("");
+  $("lockPad").addEventListener("click", e => {
+    const b = e.target.closest("button[data-k]");
+    if (!b) return;
+    const k = b.dataset.k;
+    if (k === "⌫") pinEntry = pinEntry.slice(0, -1);
+    else if (k === "✓") tryUnlock();
+    else if (pinEntry.length < 4) pinEntry += k;
+    updateLockDots();
+    if (pinEntry.length === 4) setTimeout(tryUnlock, 150);
+  });
+  $("lockBtn").addEventListener("click", () => {
+    // бе PIN қулф маъно надорад — корбарро маҳбус накунем
+    if (loadSettings().pin) showLock();
+  });
+  $("lockLogout").addEventListener("click", () => {
+    $("lockScreen").hidden = true;
+    logout();
   });
 
   // ============ МАЪЛУМОТИ НАМУНАВӢ ============
@@ -1187,6 +1515,7 @@
   }
 
   function peerReply(contact) {
+    if (loadSettings().autoReply === false) return;
     const reply = REPLIES[(contact.msgSeed ?? 0) % REPLIES.length];
     contact.msgSeed = ((contact.msgSeed ?? 0) + 1) % REPLIES.length;
 
@@ -1213,6 +1542,7 @@
     setTimeout(() => {
       $("typing")?.remove();
       contact.messages.push({ from: "them", text: reply, time: now() });
+      beep(660);
       if (contact.id !== activeId) {
         contact.unread++;
       } else {
@@ -1233,6 +1563,7 @@
     $("sendBtn").disabled = true;
     cancelReply();
     appendBubble(last(c));
+    beep(880);
     renderList();
     saveChats();
     peerReply(c);
