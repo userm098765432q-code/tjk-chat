@@ -32,7 +32,7 @@ describe("TJK CHAT — Ҷараёни чат (smoke)", () => {
     cy.get("#meName").should("have.text", "Сино Каримов");
   });
 
-  it("паём фиристода мешавад: push, тозаи input, тик ✓", () => {
+  it("паём фиристода мешавад: push, тозаи input, тик ✓ → ✓✓ (расид)", () => {
     cy.contains(".chat-item", "Далер Назаров").click();
     cy.get("#input").type("Салом, Далер!");
     cy.get("#composer").submit();
@@ -40,18 +40,26 @@ describe("TJK CHAT — Ҷараёни чат (smoke)", () => {
     cy.get("#input").should("have.value", "");
     cy.get("#messages .msg").should("have.length", 3); // 2 demo + 1 нав
     cy.get("#messages .msg").last().should("contain.text", "Салом, Далер!");
+    // ҳанӯз нарасида: тик ✓
     cy.get("#messages .msg").last().find(".tick").should("contain.text", "✓");
+    cy.get("#messages .tick.read").should("have.length", 0);
+    // баъди DELIVERED_MS: ✓✓
+    cy.get("#messages .tick", { timeout: 2000 }).should("contain.text", "✓✓");
   });
 
-  it("ҷавоби худкор меояд ва тикҳо ✓✓ кабуд мешаванд", () => {
+  it("корбари дуюм: ✓✓ кабуд → тайпинг → ҷавоби детерминистӣ", () => {
     cy.contains(".chat-item", "Далер Назаров").click();
     cy.get("#input").type("тик-тест");
     cy.get("#composer").submit();
 
-    // autoReply баъди ~2-3.5s: паёми нави "them"
+    // 1) ✓✓ расид
+    cy.get("#messages .tick", { timeout: 2000 }).should("contain.text", "✓✓");
+    // 2) ✓✓ кабуд + тайпинг
+    cy.get("#messages .tick.read", { timeout: 2500 }).should("have.length.at.least", 1);
+    cy.get("#typing", { timeout: 2500 }).should("exist");
+    // 3) ҷавоби ҳамеша-якхела: "Ҳа, албатта! 😊"
     cy.get("#messages .msg.them", { timeout: 6000 }).should("have.length.at.least", 1);
-    // тикҳои паёми мо хондашуда (кабуд) мешаванд
-    cy.get("#messages .tick.read", { timeout: 6000 }).should("have.length.at.least", 1);
+    cy.get("#messages .msg.them").last().should("contain.text", "Ҳа, албатта! 😊");
     // индикатори typing нест шудааст
     cy.get("#typing").should("not.exist");
   });

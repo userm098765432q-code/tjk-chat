@@ -616,7 +616,7 @@
       appendBubble(last(c));
       renderList();
       saveChats();
-      autoReply(c);
+      peerReply(c);
       e.target.value = "";
     };
     reader.readAsDataURL(file);
@@ -669,7 +669,7 @@
           appendBubble(last(c));
           renderList();
           saveChats();
-          autoReply(c);
+          peerReply(c);
         };
         reader.readAsDataURL(blob);
       };
@@ -897,28 +897,56 @@
     $("input").focus();
   }
 
-  // ============ ИРСОЛИ ПАЁМ ВА ҶАВОБИ ХУДКОР ============
-  function autoReply(contact) {
+  // ============ ҶАВОБИ КОРБАРИ ДУЮМ (симулятсия) ============
+  // Рафтори воқеии муколама: ✓✓ (расид) → хондан (✓✓ кабуд) → индикатори тайпинг бо
+  // давомнокии мутаносиби дарозии ҷавоб → ҷавоб. Ҷавобҳо детерминистӣ — барои тестҳо.
+  const DELIVERED_MS = 600;
+  const READ_MS = 1200;
+  const TYPE_PER_CHAR_MS = 60;
+  const TYPING_MS = reply => 400 + reply.length * TYPE_PER_CHAR_MS;
+
+  function showTyping() {
+    if ($("typing")) return;
+    $("messages").insertAdjacentHTML("beforeend",
+      '<div class="msg them" id="typing"><div class="bubble"><span class="typing-dots"><span></span><span></span><span></span></span></div></div>');
+    scrollDown();
+  }
+
+  function peerReply(contact) {
+    const reply = REPLIES[(contact.msgSeed ?? 0) % REPLIES.length];
+    contact.msgSeed = ((contact.msgSeed ?? 0) + 1) % REPLIES.length;
+
+    // 1) паём ба қабулкунанда расид — ✓✓
     setTimeout(() => {
+      contact.messages.forEach(m => { if (m.from === "me") m.delivered = true; });
+      if (contact.id === activeId) renderChat();
+      renderList();
+      saveChats();
+    }, DELIVERED_MS);
+
+    // 2) хондан — ✓✓ кабуд + оғози тайпинг (танҳо дар чати фаъол)
+    setTimeout(() => {
+      contact.messages.forEach(m => { if (m.from === "me") { m.delivered = true; m.read = true; } });
+      renderList();
+      saveChats();
       if (contact.id === activeId) {
-        $("messages").insertAdjacentHTML("beforeend",
-          '<div class="msg them" id="typing"><div class="bubble"><span class="typing-dots"><span></span><span></span><span></span></span></div></div>');
-        scrollDown();
+        renderChat();
+        showTyping();
       }
-      setTimeout(() => {
-        $("typing")?.remove();
-        // ҳамаи паёмҳои гирифташудаи ин контакт дидашуда мешаванд
-        contact.messages.forEach(m => { if (m.from === "me") { m.delivered = true; m.read = true; } });
-        contact.messages.push({ from: "them", text: REPLIES[Math.floor(Math.random() * REPLIES.length)], time: now() });
-        if (contact.id !== activeId) {
-          contact.unread++;
-        } else {
-          renderChat();
-        }
-        renderList();
-        saveChats();
-      }, 1200 + Math.random() * 1400);
-    }, 900 + Math.random() * 1200);
+    }, READ_MS);
+
+    // 3) ҷавоб — баъди тайпинг
+    setTimeout(() => {
+      $("typing")?.remove();
+      contact.messages.push({ from: "them", text: reply, time: now() });
+      if (contact.id !== activeId) {
+        contact.unread++;
+      } else {
+        renderChat();
+      }
+      renderList();
+      saveChats();
+    }, READ_MS + TYPING_MS(reply));
   }
 
   $("composer").addEventListener("submit", e => {
@@ -933,7 +961,7 @@
     appendBubble(last(c));
     renderList();
     saveChats();
-    autoReply(c);
+    peerReply(c);
   });
 
   $("messages").addEventListener("click", e => {
