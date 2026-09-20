@@ -207,6 +207,88 @@
   }
   .logout-btn:hover { color: var(--gold); border-color: var(--gold); }
 
+  .profile-trigger {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 1;
+    min-width: 0;
+    padding: 4px 6px;
+    border-radius: 10px;
+    background: none;
+    border: none;
+    color: var(--text);
+    font-family: inherit;
+    text-align: left;
+    cursor: pointer;
+  }
+  .profile-trigger:hover { background: var(--panel-2); }
+
+  /* ---------- Модали профил ---------- */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.65);
+    backdrop-filter: blur(3px);
+  }
+  .modal-overlay[hidden] { display: none; }
+  .modal {
+    width: 400px;
+    max-width: calc(100vw - 32px);
+    max-height: calc(100vh - 32px);
+    overflow-y: auto;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    animation: pop 0.18s ease-out;
+  }
+  .modal h2 { margin: 0 0 16px; font-size: 17px; color: var(--gold); letter-spacing: 2px; }
+  .profile-avatar-wrap { position: relative; width: 96px; height: 96px; margin: 0 auto 6px; cursor: pointer; }
+  .profile-avatar-wrap .avatar { width: 96px; height: 96px; min-width: 96px; font-size: 30px; }
+  .profile-avatar-wrap .avatar img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; display: block; }
+  .profile-photo-badge {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: var(--gold-grad);
+    color: var(--bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    border: 2px solid var(--panel);
+  }
+  .profile-remove-photo {
+    display: block;
+    margin: 4px auto 12px;
+    background: none;
+    border: none;
+    color: var(--muted);
+    font-size: 12px;
+    cursor: pointer;
+    text-decoration: underline;
+  }
+  .profile-label { font-size: 12.5px; color: var(--gold); font-weight: 600; letter-spacing: 0.5px; }
+  .color-row { display: flex; gap: 8px; flex-wrap: wrap; margin: 8px 0 16px; }
+  .color-swatch { width: 30px; height: 30px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; }
+  .color-swatch.selected { border-color: var(--gold); box-shadow: 0 0 0 2px var(--gold-soft); }
+  .profile-err { color: #ff6b6b; font-size: 12px; min-height: 16px; margin-top: 6px; text-align: center; }
+  .modal-actions { display: flex; gap: 10px; margin-top: 12px; }
+  .modal-actions button { flex: 1; padding: 11px; border-radius: 10px; font-family: inherit; font-size: 13.5px; cursor: pointer; letter-spacing: 1px; }
+  .profile-save { border: none; background: var(--gold-grad); color: var(--bg); font-weight: 700; }
+  .profile-save:hover { box-shadow: 0 6px 18px rgba(212, 175, 55, 0.35); }
+  .profile-cancel { background: none; border: 1px solid var(--border); color: var(--text); }
+  .profile-cancel:hover { border-color: var(--gold); }
+
   /* ---------- Гуфтугӯ ---------- */
   .chat { flex: 1; min-width: 0; display: flex; flex-direction: column; }
   .chat-header { display: flex; align-items: center; gap: 12px; padding: 12px 18px; background: var(--panel); border-bottom: 1px solid var(--border); }
@@ -487,10 +569,12 @@
     </div>
     <div class="chat-list" id="chatList"></div>
     <div class="sidebar-footer">
-      <div class="avatar" id="meAvatar">Ш</div>
-      <div class="me-info">
-        <div class="me-name" id="meName">Шумо</div>
-        <div class="me-status">● Дар интернет</div>
+      <div class="profile-trigger" id="profileBtn" role="button" tabindex="0" title="Профил">
+        <div class="avatar" id="meAvatar">Ш</div>
+        <div class="me-info">
+          <div class="me-name" id="meName">Шумо</div>
+          <div class="me-status">● Дар интернет</div>
+        </div>
       </div>
       <button class="logout-btn" id="logoutBtn" title="Баромадан">⎋</button>
     </div>
@@ -528,6 +612,45 @@
     </div>
   </main>
 
+</div>
+
+<div class="modal-overlay" id="profileModal" hidden>
+  <div class="modal" role="dialog" aria-label="Профил">
+    <h2>ПРОФИЛ</h2>
+    <div class="profile-avatar-wrap" id="profileAvatarWrap" title="Интихоби сурат">
+      <div class="avatar" id="profileAvatar"></div>
+      <div class="profile-photo-badge">📷</div>
+    </div>
+    <button class="profile-remove-photo" id="removePhotoBtn" type="button" hidden>Нест кардани сурат</button>
+    <div class="profile-label">РАНГ</div>
+    <div class="color-row" id="colorRow"></div>
+    <div class="field">
+      <label for="pFirstName">Ном</label>
+      <input type="text" id="pFirstName" placeholder="Мисол: Сино">
+      <span class="err" id="err-pFirstName"></span>
+    </div>
+    <div class="field">
+      <label for="pLastName">Насаб</label>
+      <input type="text" id="pLastName" placeholder="Мисол: Каримов">
+      <span class="err" id="err-pLastName"></span>
+    </div>
+    <div class="field">
+      <label for="pPhone">Телефон</label>
+      <input type="tel" id="pPhone" placeholder="+992 XX XXX XXXX">
+      <span class="err" id="err-pPhone"></span>
+    </div>
+    <div class="field">
+      <label for="pEmail">Email</label>
+      <input type="email" id="pEmail" placeholder="misol@tjkchat.tj">
+      <span class="err" id="err-pEmail"></span>
+    </div>
+    <div class="profile-err" id="profileErr"></div>
+    <div class="modal-actions">
+      <button class="profile-cancel" id="profileCancel" type="button">БЕКОР</button>
+      <button class="profile-save" id="profileSave" type="button">ЗАХИРА</button>
+    </div>
+    <input type="file" id="profilePhotoInput" accept="image/*" hidden>
+  </div>
 </div>
 
 <script>
@@ -624,9 +747,13 @@
 
   $("cancelReply").addEventListener("click", cancelReply);
 
-  // Escape: як қабат дар як бор — аввал панели эмодзи, баъд ҷавоб
+  // Escape: як қабат дар як бор — модали профил → панели эмодзи → ҷавоб
   document.addEventListener("keydown", e => {
     if (e.key !== "Escape") return;
+    if (!$("profileModal").hidden) {
+      $("profileModal").hidden = true;
+      return;
+    }
     if ($("emojiPanel").classList.contains("show")) {
       $("emojiPanel").classList.remove("show");
       return;
@@ -747,8 +874,7 @@
     if (!u) { $("app").style.display = "none"; return; }
     $("authScreen").classList.add("hidden");
     $("app").style.display = "";
-    $("meName").textContent = u.firstName + " " + u.lastName;
-    $("meAvatar").textContent = (u.firstName[0] + u.lastName[0]).toUpperCase();
+    applyProfile(u);
     const saved = loadChats();
     // аз намунаи тоза нусха мегирем, то демо-маълумот дахолатпазир нашаванд
     CONTACTS = (saved || DEMO_CONTACTS).map(c => ({ ...c, messages: c.messages.map(m => ({ ...m })) }));
@@ -756,6 +882,144 @@
     renderList();
     renderChat();
   }
+
+  // ============ ПРОФИЛ ============
+  const AVATAR_COLORS = [
+    "linear-gradient(135deg, #d4af37, #b08d24)",
+    "linear-gradient(135deg, #e6537a, #ff8a5c)",
+    "linear-gradient(135deg, #4f8cff, #22d3ee)",
+    "linear-gradient(135deg, #a855f7, #ec4899)",
+    "linear-gradient(135deg, #f59e0b, #ef4444)",
+    "linear-gradient(135deg, #10b981, #3b82f6)",
+    "linear-gradient(135deg, #8b5cf6, #6366f1)",
+    "linear-gradient(135deg, #14b8a6, #84cc16)"
+  ];
+  const initials = (first, last) => ((first.trim()[0] || "А") + (last.trim()[0] || "Б")).toUpperCase();
+
+  function avatarContent(u, el) {
+    if (u.avatar) {
+      el.textContent = "";
+      const img = document.createElement("img");
+      img.src = u.avatar;
+      img.alt = "";
+      el.appendChild(img);
+    } else {
+      el.textContent = initials(u.firstName, u.lastName);
+    }
+    el.style.background = u.avatar ? "none" : (u.avatarColor || AVATAR_COLORS[0]);
+  }
+
+  function applyProfile(u) {
+    $("meName").textContent = u.firstName + " " + u.lastName;
+    avatarContent(u, $("meAvatar"));
+  }
+
+  let profileColor = null;
+  let profilePhoto = null;
+  const pFieldId = f => "p" + f[0].toUpperCase() + f.slice(1);
+
+  function renderProfilePreview() {
+    avatarContent(
+      { firstName: $("pFirstName").value || " ", lastName: $("pLastName").value || " ", avatar: profilePhoto, avatarColor: profileColor },
+      $("profileAvatar")
+    );
+    $("removePhotoBtn").hidden = !profilePhoto;
+    [...$("colorRow").children].forEach(s => s.classList.toggle("selected", s.dataset.c === profileColor));
+  }
+
+  function openProfile() {
+    const u = loadUser();
+    if (!u) return;
+    FIELDS.forEach(f => {
+      $(pFieldId(f)).value = u[f];
+      $("err-" + pFieldId(f)).textContent = "";
+      $(pFieldId(f)).classList.remove("invalid");
+    });
+    profilePhoto = u.avatar || null;
+    profileColor = u.avatarColor || AVATAR_COLORS[0];
+    $("profileErr").textContent = "";
+    renderProfilePreview();
+    $("profileModal").hidden = false;
+  }
+
+  // суратро то 256px хурд мекунем — quota-и localStorage эмин мемонад
+  function readProfilePhoto(file, cb) {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const img = new Image();
+      img.onload = () => {
+        const scale = Math.min(1, 256 / Math.max(img.width, img.height));
+        const canvas = document.createElement("canvas");
+        canvas.width = Math.round(img.width * scale);
+        canvas.height = Math.round(img.height * scale);
+        canvas.getContext("2d").drawImage(img, 0, 0, canvas.width, canvas.height);
+        cb(canvas.toDataURL("image/jpeg", 0.85));
+      };
+      img.onerror = () => cb(null);
+      img.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function validateProfileField(f) {
+    const el = $(pFieldId(f));
+    const msg = validators[f](el.value);
+    el.classList.toggle("invalid", !!msg);
+    $("err-" + pFieldId(f)).textContent = msg;
+    return !msg;
+  }
+
+  FIELDS.forEach(f => $(pFieldId(f)).addEventListener("input", () => {
+    if ($("err-" + pFieldId(f)).textContent) validateProfileField(f);
+  }));
+
+  $("colorRow").innerHTML = AVATAR_COLORS
+    .map(c => `<button type="button" class="color-swatch" data-c="${c}" style="background:${c}" title="Ранг"></button>`)
+    .join("");
+  $("colorRow").addEventListener("click", e => {
+    const b = e.target.closest(".color-swatch");
+    if (!b) return;
+    profileColor = b.dataset.c;
+    renderProfilePreview();
+  });
+
+  $("profileBtn").addEventListener("click", openProfile);
+  $("profileAvatarWrap").addEventListener("click", () => $("profilePhotoInput").click());
+  $("profilePhotoInput").addEventListener("change", e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    readProfilePhoto(file, data => {
+      if (data) {
+        profilePhoto = data;
+        renderProfilePreview();
+      } else {
+        $("profileErr").textContent = "Сурати дуруст интихоб кунед.";
+      }
+      e.target.value = "";
+    });
+  });
+  $("removePhotoBtn").addEventListener("click", () => {
+    profilePhoto = null;
+    renderProfilePreview();
+  });
+  $("profileCancel").addEventListener("click", () => $("profileModal").hidden = true);
+
+  $("profileSave").addEventListener("click", () => {
+    if (!FIELDS.map(validateProfileField).every(Boolean)) return;
+    const u = loadUser();
+    if (!u) return;
+    FIELDS.forEach(f => u[f] = $(pFieldId(f)).value.trim());
+    u.avatarColor = profileColor;
+    if (profilePhoto) u.avatar = profilePhoto; else delete u.avatar;
+    try {
+      localStorage.setItem(AUTH_KEY, JSON.stringify(u));
+    } catch {
+      $("profileErr").textContent = "Макон кофӣ нест — сурати хурдтар интихоб кунед.";
+      return;
+    }
+    $("profileModal").hidden = true;
+    applyProfile(u);
+  });
 
   // ============ МАЪЛУМОТИ НАМУНАВӢ ============
   // Нусхаи аслии намунавӣ — ҳар дафъа startApp аз он нусха гирифта мешавад
