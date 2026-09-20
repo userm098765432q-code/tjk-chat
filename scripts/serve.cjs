@@ -22,3 +22,10 @@ function serve(port) {
 }
 
 module.exports = { serve };
+
+// Иҷрои мустақим: node scripts/serve.cjs [port] — барои preview ва санҷиши дастӣ
+if (require.main === module) {
+  const port = Number(process.argv[2]) || 8080;
+  serve(port);
+  console.log(`TJK CHAT: http://localhost:${port}`);
+}
